@@ -122,7 +122,7 @@ namespace UoFiddler.Controls.UserControls
             listView.TabIndex = 0;
             listView.View = System.Windows.Forms.View.Details;
             listView.FullRowSelect = true;
-            listView.MultiSelect = false;
+            listView.MultiSelect = true;
             listView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
             listViewColumn.Text = "Sound";
             listViewColumn.Width = 400;
