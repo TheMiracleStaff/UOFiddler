@@ -1432,11 +1432,21 @@ namespace UoFiddler.Controls.UserControls
                 return;
             }
 
-            if (!client.SendText(command))
+            string error = client.SendText(command) switch
+            {
+                ClientSendResult.Sent => null,
+                ClientSendResult.NotRunning => $"{client} is no longer running. Choose another client and try again.",
+                ClientSendResult.NoWindow => $"{client} has no window yet. Wait for it to finish loading and try again.",
+                ClientSendResult.AccessDenied => $"Windows did not let UOFiddler type into {client}.\r\n\r\n" +
+                                                 "The client is running as administrator and UOFiddler is not. " +
+                                                 "Start both the same way: either UOFiddler as administrator too, or the client without it.",
+                _ => $"Could not type into {client}. Try closing and reopening the client."
+            };
+
+            if (error != null)
             {
                 RefreshClientList();
-                MessageBox.Show($"{client} is no longer running. Choose another client and try again.",
-                    "Send to client", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(error, "Send to client", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

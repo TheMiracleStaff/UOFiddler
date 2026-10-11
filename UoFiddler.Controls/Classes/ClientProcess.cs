@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Ultima;
 
 namespace UoFiddler.Controls.Classes
@@ -66,28 +67,40 @@ namespace UoFiddler.Controls.Classes
         /// <summary>
         /// Types <paramref name="text" /> into the client's window and presses Enter.
         /// </summary>
-        /// <returns>False if the client is no longer running.</returns>
-        public bool SendText(string text)
+        public ClientSendResult SendText(string text)
         {
+            IntPtr window;
             try
             {
                 using Process process = Process.GetProcessById(ProcessId);
-                if (process.HasExited)
-                {
-                    return false;
-                }
-
-                return Client.SendText(process.MainWindowHandle, text, sdlClient: true);
+                window = process.MainWindowHandle;
             }
             catch (ArgumentException)
             {
                 // No process with that id any more
-                return false;
+                return ClientSendResult.NotRunning;
             }
             catch (InvalidOperationException)
             {
-                return false;
+                // It exited while we were looking at it
+                return ClientSendResult.NotRunning;
             }
+
+            if (window == IntPtr.Zero)
+            {
+                return ClientSendResult.NoWindow;
+            }
+
+            if (Client.SendText(window, text, sdlClient: true))
+            {
+                return ClientSendResult.Sent;
+            }
+
+            // Windows will not let a program post messages to one running with higher rights (UIPI)
+            const int errorAccessDenied = 5;
+            return Marshal.GetLastPInvokeError() == errorAccessDenied
+                ? ClientSendResult.AccessDenied
+                : ClientSendResult.Failed;
         }
 
         public override string ToString()
@@ -96,5 +109,21 @@ namespace UoFiddler.Controls.Classes
                 ? $"{ProcessName} (PID {ProcessId})"
                 : $"{Title} (PID {ProcessId})";
         }
+    }
+
+    public enum ClientSendResult
+    {
+        Sent,
+
+        /// <summary>The process has exited.</summary>
+        NotRunning,
+
+        /// <summary>The process is running but has no window (yet).</summary>
+        NoWindow,
+
+        /// <summary>The client runs with higher rights (as administrator) than UOFiddler.</summary>
+        AccessDenied,
+
+        Failed
     }
 }
