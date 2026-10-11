@@ -146,6 +146,7 @@ namespace UoFiddler.Controls.UserControls
 
             using (new WaitCursorScope(this))
             {
+                BuildExtraMapMenuItems();
                 LoadMapOverlays();
                 Options.LoadedUltimaClass["Map"] = true;
                 Options.LoadedUltimaClass["RadarColor"] = true;
@@ -216,17 +217,16 @@ namespace UoFiddler.Controls.UserControls
             tokunoToolStripMenuItem.Text = Options.MapNames[4];
             terMurToolStripMenuItem.Text = Options.MapNames[5];
 
-            if (OverlayObjectTree.Nodes.Count <= 0)
+            foreach (ToolStripMenuItem item in _extraMapMenuItems)
             {
-                return;
+                item.Text = MapName(((Map)item.Tag).MapId);
             }
 
-            OverlayObjectTree.Nodes[0].Text = Options.MapNames[0];
-            OverlayObjectTree.Nodes[1].Text = Options.MapNames[1];
-            OverlayObjectTree.Nodes[2].Text = Options.MapNames[2];
-            OverlayObjectTree.Nodes[3].Text = Options.MapNames[3];
-            OverlayObjectTree.Nodes[4].Text = Options.MapNames[4];
-            OverlayObjectTree.Nodes[5].Text = Options.MapNames[5];
+            for (int i = 0; i < OverlayObjectTree.Nodes.Count; i++)
+            {
+                OverlayObjectTree.Nodes[i].Text = MapName(i);
+            }
+
             OverlayObjectTree.Invalidate();
         }
 
@@ -374,6 +374,54 @@ namespace UoFiddler.Controls.UserControls
             ilshenarToolStripMenuItem.Checked = false;
             tokunoToolStripMenuItem.Checked = false;
             terMurToolStripMenuItem.Checked = false;
+
+            foreach (ToolStripMenuItem item in _extraMapMenuItems)
+            {
+                item.Checked = false;
+            }
+        }
+
+        /// <summary>
+        /// Menu items of the maps past the standard six (<see cref="Map.ExtraMaps"/>), tagged with their map.
+        /// </summary>
+        private readonly List<ToolStripMenuItem> _extraMapMenuItems = new List<ToolStripMenuItem>();
+
+        /// <summary>
+        /// Adds a menu item after Ter Mur for each extra map found in the client.
+        /// </summary>
+        private void BuildExtraMapMenuItems()
+        {
+            foreach (ToolStripMenuItem item in _extraMapMenuItems)
+            {
+                contextMenuStrip1.Items.Remove(item);
+                item.Dispose();
+            }
+
+            _extraMapMenuItems.Clear();
+
+            int index = contextMenuStrip1.Items.IndexOf(terMurToolStripMenuItem) + 1;
+            foreach (Map map in Map.ExtraMaps)
+            {
+                var item = new ToolStripMenuItem(MapName(map.MapId)) { Tag = map };
+                item.Click += ChangeMapExtra;
+                contextMenuStrip1.Items.Insert(index++, item);
+                _extraMapMenuItems.Add(item);
+            }
+        }
+
+        private void ChangeMapExtra(object sender, EventArgs e)
+        {
+            var item = (ToolStripMenuItem)sender;
+            if (item.Checked)
+            {
+                return;
+            }
+
+            ResetCheckedMap();
+            item.Checked = true;
+            CurrentMap = (Map)item.Tag;
+            _currentMapId = CurrentMap.MapId;
+            ChangeMap();
         }
 
         private void ChangeMapFelucca(object sender, EventArgs e)
@@ -839,6 +887,13 @@ namespace UoFiddler.Controls.UserControls
                 return;
             }
 
+            if (mapClient < 0 || mapClient >= Map.All.Count)
+            {
+                MessageBox.Show($"The client is on map {mapClient}, which is not among the loaded maps.", "Goto Client Loc",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             if (_currentMapId != mapClient)
             {
                 ResetCheckedMap();
@@ -853,11 +908,31 @@ namespace UoFiddler.Controls.UserControls
             hScrollBar.Value = (int)Math.Max(0, x - (pictureBox.Right / Zoom / 2));
             vScrollBar.Value = (int)Math.Max(0, y - (pictureBox.Bottom / Zoom / 2));
             pictureBox.Invalidate();
-            ClientLocLabel.Text = $"ClientLoc: {x},{y},{z},{Options.MapNames[mapClient]}";
+            ClientLocLabel.Text = $"ClientLoc: {x},{y},{z},{MapName(mapClient)}";
+        }
+
+        /// <summary>
+        /// Display name of a map id, also for ids past the names the options hold.
+        /// </summary>
+        private static string MapName(int mapId)
+        {
+            return mapId >= 0 && mapId < Options.MapNames.Length ? Options.MapNames[mapId] : $"Map {mapId}";
         }
 
         private void SwitchMap(int mapId)
         {
+            if (mapId >= 6)
+            {
+                ToolStripMenuItem item = _extraMapMenuItems.Find(i => ((Map)i.Tag).MapId == mapId);
+                if (item != null)
+                {
+                    item.Checked = true;
+                    CurrentMap = (Map)item.Tag;
+                }
+
+                return;
+            }
+
             switch (mapId)
             {
                 case 0:
@@ -913,7 +988,7 @@ namespace UoFiddler.Controls.UserControls
                     _clientY = y;
                     _clientZ = z;
                     _clientMap = mapClient;
-                    mapName = Options.MapNames[mapClient];
+                    mapName = MapName(mapClient);
                 }
             }
 
@@ -1233,7 +1308,7 @@ namespace UoFiddler.Controls.UserControls
         {
             string format = "{0} " + Options.MapArgs;
             int z = CurrentMap.Tiles.GetLandTile(x, y).Z;
-            Client.SendText(string.Format(format, Options.MapCmd, x, y, z, _currentMapId, Options.MapNames[_currentMapId]));
+            Client.SendText(string.Format(format, Options.MapCmd, x, y, z, _currentMapId, MapName(_currentMapId)));
         }
 
         private void ExtractMapBmp(object sender, EventArgs e)
@@ -1259,7 +1334,7 @@ namespace UoFiddler.Controls.UserControls
         private void ExtractMapImage(ImageFormat imageFormat)
         {
             string fileExtension = Utils.GetFileExtensionFor(imageFormat);
-            string fileName = Path.Combine(Options.OutputPath, $"{Options.MapNames[_currentMapId]}.{fileExtension}");
+            string fileName = Path.Combine(Options.OutputPath, $"{MapName(_currentMapId)}.{fileExtension}");
 
             using (new WaitCursorScope(this))
             {
@@ -1351,6 +1426,13 @@ namespace UoFiddler.Controls.UserControls
                     string text = element.GetAttribute("text");
                     OverlayCursor o = new OverlayCursor(new Point(x, y), m, text, Color.FromArgb(c));
                     TreeNode node = new TreeNode(text) {Tag = o};
+
+                    // Keep markers of maps this client lacks, so saving the overlays doesn't drop them
+                    while (OverlayObjectTree.Nodes.Count <= m)
+                    {
+                        AddOverlayGroup(OverlayObjectTree.Nodes.Count);
+                    }
+
                     OverlayObjectTree.Nodes[m].Nodes.Add(node);
                 }
             }
@@ -1362,41 +1444,15 @@ namespace UoFiddler.Controls.UserControls
 
         private void AddOverlayGroups()
         {
-            TreeNode node = new TreeNode(Options.MapNames[0])
+            for (int mapId = 0; mapId < Map.All.Count; mapId++)
             {
-                Tag = 0
-            };
-            OverlayObjectTree.Nodes.Add(node);
+                AddOverlayGroup(mapId);
+            }
+        }
 
-            node = new TreeNode(Options.MapNames[1])
-            {
-                Tag = 1
-            };
-            OverlayObjectTree.Nodes.Add(node);
-
-            node = new TreeNode(Options.MapNames[2])
-            {
-                Tag = 2
-            };
-            OverlayObjectTree.Nodes.Add(node);
-
-            node = new TreeNode(Options.MapNames[3])
-            {
-                Tag = 3
-            };
-            OverlayObjectTree.Nodes.Add(node);
-
-            node = new TreeNode(Options.MapNames[4])
-            {
-                Tag = 4
-            };
-            OverlayObjectTree.Nodes.Add(node);
-
-            node = new TreeNode(Options.MapNames[5])
-            {
-                Tag = 5
-            };
-            OverlayObjectTree.Nodes.Add(node);
+        private void AddOverlayGroup(int mapId)
+        {
+            OverlayObjectTree.Nodes.Add(new TreeNode(MapName(mapId)) { Tag = mapId });
         }
 
         public static void SaveMapOverlays()
@@ -1875,7 +1931,7 @@ namespace UoFiddler.Controls.UserControls
             int index = CurrentMap.FileIndex;
 
             var message = new StringBuilder();
-            message.AppendLine($"Paste {patches.Count} patch(es) into {Options.MapNames[_currentMapId]} (map{index}.mul):");
+            message.AppendLine($"Paste {patches.Count} patch(es) into {MapName(_currentMapId)} (map{index}.mul):");
             foreach (string fileName in fileNames.Take(10))
             {
                 message.AppendLine($"    {Path.GetFileName(fileName)}");

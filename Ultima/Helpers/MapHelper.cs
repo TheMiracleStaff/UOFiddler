@@ -14,7 +14,8 @@ namespace Ultima.Helpers
     public sealed class MapHelper
     {
         /// <summary>
-        /// Checks if map1.mul exists and sets <see cref="Ultima.Map"/>
+        /// Checks if map1.mul exists and sets <see cref="Ultima.Map"/>, then fits map 5 and the extra maps
+        /// to the client files (<see cref="Map.DetectFacets"/>).
         /// </summary>
         public static void CheckForNewMapSize()
         {
@@ -30,6 +31,8 @@ namespace Ultima.Helpers
                     ? new Map(0, 1, 7168, 4096)
                     : new Map(0, 1, 6144, 4096);
             }
+
+            Map.DetectFacets();
         }
     }
 }

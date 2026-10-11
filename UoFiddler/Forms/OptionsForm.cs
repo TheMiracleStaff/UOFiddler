@@ -81,12 +81,11 @@ namespace UoFiddler.Forms
             numericUpDownItemSizeWidth.Value = Options.ArtItemSizeWidth;
             numericUpDownItemSizeHeight.Value = Options.ArtItemSizeHeight;
             checkBoxItemClip.Checked = Options.ArtItemClip;
-            map0Nametext.Text = Options.MapNames[0];
-            map1Nametext.Text = Options.MapNames[1];
-            map2Nametext.Text = Options.MapNames[2];
-            map3Nametext.Text = Options.MapNames[3];
-            map4Nametext.Text = Options.MapNames[4];
-            map5Nametext.Text = Options.MapNames[5];
+            _mapNameTextBoxes = new[] { map0Nametext, map1Nametext, map2Nametext, map3Nametext, map4Nametext, map5Nametext, map6Nametext, map7Nametext };
+            for (int i = 0; i < _mapNameTextBoxes.Length; i++)
+            {
+                _mapNameTextBoxes[i].Text = Options.MapNames[i];
+            }
             cmdtext.Text = Options.MapCmd;
             argstext.Text = Options.MapArgs;
             textBoxOutputPath.Text = Options.OutputPath;
@@ -175,19 +174,18 @@ namespace UoFiddler.Forms
                 ControlEvents.FirePreviewBackgroundColorChangeEvent();
             }
 
-            if (map0Nametext.Text != Options.MapNames[0]
-                || map1Nametext.Text != Options.MapNames[1]
-                || map2Nametext.Text != Options.MapNames[2]
-                || map3Nametext.Text != Options.MapNames[3]
-                || map4Nametext.Text != Options.MapNames[4]
-                || map5Nametext.Text != Options.MapNames[5])
+            bool mapNamesChanged = false;
+            for (int i = 0; i < _mapNameTextBoxes.Length; i++)
             {
-                Options.MapNames[0] = map0Nametext.Text;
-                Options.MapNames[1] = map1Nametext.Text;
-                Options.MapNames[2] = map2Nametext.Text;
-                Options.MapNames[3] = map3Nametext.Text;
-                Options.MapNames[4] = map4Nametext.Text;
-                Options.MapNames[5] = map5Nametext.Text;
+                if (_mapNameTextBoxes[i].Text != Options.MapNames[i])
+                {
+                    Options.MapNames[i] = _mapNameTextBoxes[i].Text;
+                    mapNamesChanged = true;
+                }
+            }
+
+            if (mapNamesChanged)
+            {
                 ControlEvents.FireMapNameChangeEvent();
             }
 
@@ -321,6 +319,11 @@ namespace UoFiddler.Forms
                 PreviewBackgroundColorButton.BackColor = dlg.Color;
             }
         }
+
+        /// <summary>
+        /// Name boxes indexed by map id; maps 6 and 7 are the extra maps some shards ship.
+        /// </summary>
+        private TextBox[] _mapNameTextBoxes;
 
         private void OnClickClose(object sender, EventArgs e)
         {

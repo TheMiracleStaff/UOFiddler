@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using Ultima.Uop;
 
 namespace Ultima.Maps
@@ -80,7 +81,8 @@ namespace Ultima.Maps
         private static readonly MapSize[] _facet2 = { new MapSize(2304, 1600) };
         private static readonly MapSize[] _facet3 = { new MapSize(2560, 2048) };
         private static readonly MapSize[] _facet4 = { new MapSize(1448, 1448) };
-        private static readonly MapSize[] _facet5 = { new MapSize(1280, 4096) };
+        // Shards reuse file 5 for Felucca sized maps; Ter Mur stays last so it remains the fallback
+        private static readonly MapSize[] _facet5 = { new MapSize(7168, 4096), new MapSize(1280, 4096) };
 
         /// <summary>
         /// The shapes a facet is known to ship in. Facets 0 and 1 both have a pre-T2A 6144-wide
@@ -96,6 +98,10 @@ namespace Ultima.Maps
                 case 3: return _facet3;
                 case 4: return _facet4;
                 case 5: return _facet5;
+                case 6:
+                case 7:
+                case 8:
+                case 9: return _knownShapes; // shard maps past the standard six take a standard shape
                 default: return Array.Empty<MapSize>();
             }
         }
@@ -105,6 +111,12 @@ namespace Ultima.Maps
         /// </summary>
         public static MapSize Fallback(int fileIndex)
         {
+            // Maps past the standard six have no stock shape to fall back to
+            if (fileIndex > 5)
+            {
+                return default;
+            }
+
             IReadOnlyList<MapSize> candidates = Candidates(fileIndex);
 
             // For facets 0 and 1 the modern shape is the safer guess: reading a 7168-wide grid off a
@@ -201,6 +213,44 @@ namespace Ultima.Maps
 
             blocks = 0;
             source = null;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Every shape a standard facet ships in, the largest first.
+        /// </summary>
+        private static readonly MapSize[] _knownShapes =
+        {
+            new MapSize(7168, 4096), new MapSize(6144, 4096), new MapSize(2304, 1600),
+            new MapSize(2560, 2048), new MapSize(1448, 1448), new MapSize(1280, 4096)
+        };
+
+        /// <summary>
+        /// Detects the shape of a facet in the loaded client, accepting the shape of any standard facet.
+        /// </summary>
+        /// <remarks>
+        /// Shards reuse file indexes and add facets past 5 with the shapes of the standard ones, such as a
+        /// Felucca sized map5. The facet's own shapes are tried first, since 2560x2048 and 1280x4096 have
+        /// the same block count.
+        /// </remarks>
+        /// <returns>False when the facet has no files or matches no known shape.</returns>
+        public static bool TryDetectAnyShape(int fileIndex, out MapSize size)
+        {
+            size = default;
+            if (!TryMeasureBlocks(Files.GetFilePath, fileIndex, out long blocks, out _))
+            {
+                return false;
+            }
+
+            foreach (MapSize candidate in Candidates(fileIndex).Concat(_knownShapes))
+            {
+                if (candidate.BlockCount == blocks)
+                {
+                    size = candidate;
+                    return true;
+                }
+            }
 
             return false;
         }

@@ -77,6 +77,19 @@ namespace UoFiddler.Controls.Forms
             comboBoxMapID.Items.Add(new SupportedMap(3, Options.MapNames[3], 2560, 2048));
             comboBoxMapID.Items.Add(new SupportedMap(4, Options.MapNames[4], 1448, 1448));
             comboBoxMapID.Items.Add(new SupportedMap(5, Options.MapNames[5], 1280, 4096));
+
+            // Map 5 and extra maps as this client has them, for shards with maps of their own
+            if (Map.TerMur.Width != 1280 || Map.TerMur.Height != 4096)
+            {
+                comboBoxMapID.Items.Add(new SupportedMap(5, $"{Options.MapNames[5]} ({Map.TerMur.Width}x{Map.TerMur.Height})", Map.TerMur.Width, Map.TerMur.Height));
+            }
+
+            foreach (Map extra in Map.ExtraMaps)
+            {
+                string name = extra.MapId < Options.MapNames.Length ? Options.MapNames[extra.MapId] : $"Map {extra.MapId}";
+                comboBoxMapID.Items.Add(new SupportedMap(extra.FileIndex, $"{name} (map{extra.FileIndex})", extra.Width, extra.Height));
+            }
+
             comboBoxMapID.EndUpdate();
             comboBoxMapID.SelectedIndex = 0;
 

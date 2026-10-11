@@ -79,7 +79,7 @@ namespace UoFiddler.Controls.Classes
         /// <summary>
         /// Defines the MapNames
         /// </summary>
-        public static string[] MapNames { get; set; } = { "Felucca", "Trammel", "Ilshenar", "Malas", "Tokuno", "Ter Mur" };
+        public static string[] MapNames { get; set; } = { "Felucca", "Trammel", "Ilshenar", "Malas", "Tokuno", "Ter Mur", "Map 6", "Map 7" };
 
         /// <summary>
         /// Race names and paperdoll body gumps used by the Dress tab.
