@@ -547,11 +547,26 @@ namespace UoFiddler.Controls.UserControls
             return new Point(Math.Max(0, Math.Min(CurrentMap.Width - 1, x)), Math.Max(0, Math.Min(CurrentMap.Height - 1, y)));
         }
 
+        /// <summary>
+        /// Selects the tiles between two corners, both inclusive. The area is widened to whole 8x8 blocks,
+        /// which is what a TbtDiff patch holds, unless Shift is held for a selection to the tile.
+        /// </summary>
         private void SetSelection(Point a, Point b)
         {
             int x = Math.Min(a.X, b.X);
             int y = Math.Min(a.Y, b.Y);
-            _selection = new Rectangle(x, y, Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
+            int right = Math.Max(a.X, b.X);
+            int bottom = Math.Max(a.Y, b.Y);
+
+            if ((ModifierKeys & Keys.Shift) == 0)
+            {
+                x &= ~7;
+                y &= ~7;
+                right = Math.Min(CurrentMap.Width - 1, right | 7);
+                bottom = Math.Min(CurrentMap.Height - 1, bottom | 7);
+            }
+
+            _selection = new Rectangle(x, y, right - x, bottom - y);
             _selectionMap = CurrentMap;
             SelectionLabel.Text = $"Selection: ({x},{y}) - ({x + _selection.Value.Width},{y + _selection.Value.Height})";
             pictureBox.Invalidate();
@@ -567,6 +582,7 @@ namespace UoFiddler.Controls.UserControls
 
         /// <summary>
         /// Draws the selection and, dashed, the 8x8 blocks it covers, which is what a TbtDiff export takes.
+        /// The two only differ for a free (Shift) selection.
         /// </summary>
         private void DrawSelection(Graphics graphics)
         {

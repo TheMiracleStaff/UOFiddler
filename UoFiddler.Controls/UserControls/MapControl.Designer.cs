@@ -192,7 +192,7 @@ namespace UoFiddler.Controls.UserControls
             this.SelectionLabel.Size = new System.Drawing.Size(260, 28);
             this.SelectionLabel.Text = "Selection: none";
             this.SelectionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.SelectionLabel.ToolTipText = "Drag with the middle mouse button to select an area, middle click to clear it";
+            this.SelectionLabel.ToolTipText = "Drag with the middle mouse button to select whole 8x8 blocks (hold Shift to select single tiles), middle click to clear";
             //
             // MessageLabel
             //
