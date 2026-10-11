@@ -10,11 +10,14 @@
  ***************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using Ultima;
@@ -357,6 +360,7 @@ namespace UoFiddler.Controls.UserControls
 
         private void ChangeMap()
         {
+            ClearSelection();
             PreloadMap.Visible = !CurrentMap.IsCached(showStaticsToolStripMenuItem1.Checked);
             SetScrollBarValues();
             pictureBox.Invalidate();
@@ -472,6 +476,14 @@ namespace UoFiddler.Controls.UserControls
                 _dragAccumY = 0;
                 Cursor = Cursors.Hand;
             }
+            else if (e.Button == MouseButtons.Middle)
+            {
+                _moving = false;
+                _selecting = true;
+                _selectionAnchor = ScreenToTile(e.Location);
+                SetSelection(_selectionAnchor, _selectionAnchor);
+                Cursor = Cursors.Cross;
+            }
             else
             {
                 _moving = false;
@@ -486,8 +498,94 @@ namespace UoFiddler.Controls.UserControls
                 return;
             }
 
+            if (_selecting && e.Button == MouseButtons.Middle)
+            {
+                _selecting = false;
+
+                // A middle click without dragging clears the selection
+                Point end = ScreenToTile(e.Location);
+                if (end == _selectionAnchor)
+                {
+                    ClearSelection();
+                }
+                else
+                {
+                    SetSelection(_selectionAnchor, end);
+                }
+            }
+
             _moving = false;
             Cursor = Cursors.Default;
+        }
+
+        /// <summary>
+        /// Selected tile rectangle, start and end inclusive, or null when nothing is selected.
+        /// </summary>
+        private Rectangle? _selection;
+        private Map _selectionMap;
+        private bool _selecting;
+
+        /// <summary>
+        /// The selection, when it was made on the map currently shown.
+        /// </summary>
+        private Rectangle? Selection => _selectionMap == CurrentMap ? _selection : null;
+        private Point _selectionAnchor;
+
+        private static readonly Brush _selectionBrush = new SolidBrush(Color.FromArgb(96, 72, 145, 220));
+        private static readonly Pen _selectionBlocksPen = new Pen(Color.FromArgb(220, 72, 145, 220)) { DashStyle = DashStyle.Dash };
+
+        private Point ScreenToTile(Point screen)
+        {
+            int x = (int)(screen.X / Zoom) + Round(hScrollBar.Value);
+            int y = (int)(screen.Y / Zoom) + Round(vScrollBar.Value);
+            return new Point(Math.Max(0, Math.Min(CurrentMap.Width - 1, x)), Math.Max(0, Math.Min(CurrentMap.Height - 1, y)));
+        }
+
+        private void SetSelection(Point a, Point b)
+        {
+            int x = Math.Min(a.X, b.X);
+            int y = Math.Min(a.Y, b.Y);
+            _selection = new Rectangle(x, y, Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
+            _selectionMap = CurrentMap;
+            SelectionLabel.Text = $"Selection: ({x},{y}) - ({x + _selection.Value.Width},{y + _selection.Value.Height})";
+            pictureBox.Invalidate();
+        }
+
+        private void ClearSelection()
+        {
+            _selecting = false;
+            _selection = null;
+            SelectionLabel.Text = "Selection: none";
+            pictureBox.Invalidate();
+        }
+
+        /// <summary>
+        /// Draws the selection and, dashed, the 8x8 blocks it covers, which is what a TbtDiff export takes.
+        /// </summary>
+        private void DrawSelection(Graphics graphics)
+        {
+            if (Selection is not Rectangle selection)
+            {
+                return;
+            }
+
+            int originX = Round(hScrollBar.Value);
+            int originY = Round(vScrollBar.Value);
+
+            RectangleF ToScreen(int x1, int y1, int x2, int y2) => new RectangleF(
+                (float)((x1 - originX) * Zoom), (float)((y1 - originY) * Zoom),
+                (float)((x2 - x1 + 1) * Zoom), (float)((y2 - y1 + 1) * Zoom));
+
+            RectangleF area = ToScreen(selection.Left, selection.Top, selection.Right, selection.Bottom);
+            graphics.FillRectangle(_selectionBrush, area);
+
+            RectangleF blocks = ToScreen(selection.Left & ~7, selection.Top & ~7, selection.Right | 7, selection.Bottom | 7);
+            graphics.DrawRectangle(_selectionBlocksPen, blocks.X, blocks.Y, blocks.Width - 1, blocks.Height - 1);
+        }
+
+        private void OnClickClearSelection(object sender, EventArgs e)
+        {
+            ClearSelection();
         }
 
         private const int DragRepaintIntervalMs = 16;
@@ -498,6 +596,12 @@ namespace UoFiddler.Controls.UserControls
             int yDelta = Math.Min(CurrentMap.Height, (int)(e.Y / Zoom) + Round(vScrollBar.Value));
 
             CoordsLabel.Text = $"Coords: {xDelta},{yDelta}";
+
+            if (_selecting)
+            {
+                SetSelection(_selectionAnchor, ScreenToTile(e.Location));
+                return;
+            }
 
             if (!_moving)
             {
@@ -910,6 +1014,8 @@ namespace UoFiddler.Controls.UserControls
                     }
                 }
             }
+
+            DrawSelection(e.Graphics);
 
             if (OverlayObjectTree.Nodes.Count <= 0 || !showMarkersToolStripMenuItem.Checked)
             {
@@ -1548,6 +1654,224 @@ namespace UoFiddler.Controls.UserControls
                 TopMost = true
             };
             _showMapReplaceTilesForm.Show();
+        }
+
+        private void TbtDiffDropDownOpening(object sender, EventArgs e)
+        {
+            bool hasSelection = Selection.HasValue;
+            exportTbtDiffToolStripMenuItem.Enabled = hasSelection;
+            clearSelectionToolStripMenuItem.Enabled = hasSelection;
+        }
+
+        private void OnClickExportTbtDiff(object sender, EventArgs e)
+        {
+            if (Selection is not Rectangle selection)
+            {
+                MessageBox.Show("Select an area first by dragging with the middle mouse button.", "Export TbtDiff",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using var form = new MapExportTbtDiffForm(CurrentMap, selection);
+            form.ShowDialog(this);
+        }
+
+        private void OnClickImportTbtDiff(object sender, EventArgs e)
+        {
+            ImportTbtDiff(intoClientFiles: false);
+        }
+
+        private void OnClickImportTbtDiffToClient(object sender, EventArgs e)
+        {
+            ImportTbtDiff(intoClientFiles: true);
+        }
+
+        /// <summary>
+        /// Pastes .tbtdiff patches into the current map, writing the result to the output directory and,
+        /// when asked, swapping it in for the client files.
+        /// </summary>
+        private void ImportTbtDiff(bool intoClientFiles)
+        {
+            string[] fileNames;
+            using (var dialog = new OpenFileDialog
+            {
+                Multiselect = true,
+                Title = "Choose the tbtdiff patches to import",
+                CheckFileExists = true,
+                InitialDirectory = Options.OutputPath,
+                Filter = $"tbtdiff files (*{TbtDiff.Extension})|*{TbtDiff.Extension}"
+            })
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                {
+                    return;
+                }
+
+                fileNames = dialog.FileNames;
+            }
+
+            var patches = new List<TbtDiff>();
+            foreach (string fileName in fileNames)
+            {
+                try
+                {
+                    patches.Add(TbtDiff.Load(fileName));
+                }
+                catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
+                {
+                    MessageBox.Show($"Can't read {Path.GetFileName(fileName)}:\n{ex.Message}", "Import TbtDiff",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+
+            (int X, int Y)? target = Selection is Rectangle selection ? (selection.X, selection.Y) : null;
+            int index = CurrentMap.FileIndex;
+
+            var message = new StringBuilder();
+            message.AppendLine($"Paste {patches.Count} patch(es) into {Options.MapNames[_currentMapId]} (map{index}.mul):");
+            foreach (string fileName in fileNames.Take(10))
+            {
+                message.AppendLine($"    {Path.GetFileName(fileName)}");
+            }
+
+            if (fileNames.Length > 10)
+            {
+                message.AppendLine($"    ... and {fileNames.Length - 10} more");
+            }
+
+            message.AppendLine();
+            message.AppendLine(target is { } t
+                ? $"Position: each patch moved to start at {t.X},{t.Y} (selection start)."
+                : "Position: where each patch was cut from.");
+
+            int otherSize = patches.Count(p => p.BlockWidth != CurrentMap.Tiles.BlockWidth || p.BlockHeight != CurrentMap.Tiles.BlockHeight);
+            if (otherSize > 0)
+            {
+                message.AppendLine($"Note: {otherSize} patch(es) come from a map of a different size.");
+            }
+
+            message.AppendLine(intoClientFiles
+                ? "The map's client files will be replaced by the result; the current ones are kept as *_OLD.mul."
+                : $"The new map files will be written to {Options.OutputPath}.");
+
+            if (MessageBox.Show(message.ToString(), "Import TbtDiff", MessageBoxButtons.YesNo, MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button2) != DialogResult.Yes)
+            {
+                return;
+            }
+
+            TbtDiff.ApplyResult result;
+            try
+            {
+                using (new WaitCursorScope(this))
+                {
+                    result = TbtDiff.Apply(CurrentMap, patches, target, Options.OutputPath);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                MessageBox.Show($"The patches could not be applied:\n{ex.Message}", "Import TbtDiff", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string summary = $"Patched {result.LandBlocks} land and {result.StaticsBlocks} statics blocks.";
+            if (result.SkippedBlocks > 0)
+            {
+                summary += $"\n{result.SkippedBlocks} block(s) fell outside the map and were left out.";
+            }
+
+            if (!intoClientFiles)
+            {
+                FileSavedDialog.Show(FindForm(), Options.OutputPath, summary, "Import TbtDiff");
+                return;
+            }
+
+            string error = ReplaceClientMapFiles(index);
+            if (error != null)
+            {
+                MessageBox.Show($"{summary}\n\nThe client files could not be replaced:\n{error}\n\nThe patched files are in {Options.OutputPath}.",
+                    "Import TbtDiff", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            MessageBox.Show($"{summary}\n\nClient files replaced and map reloaded, ready for another patch.", "Import TbtDiff",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        /// <summary>
+        /// Swaps the patched map files from the output directory in for the client's, keeping the client's as *_OLD.mul,
+        /// and reloads the maps.
+        /// </summary>
+        /// <returns>null on success, otherwise what went wrong.</returns>
+        private string ReplaceClientMapFiles(int fileIndex)
+        {
+            // Resolve every path first: Files.GetFilePath returns null once a file has been moved away
+            var files = new List<(string Client, string Old, string Patched)>();
+            foreach (string name in new[] { $"map{fileIndex}", $"staidx{fileIndex}", $"statics{fileIndex}" })
+            {
+                string client = Files.GetFilePath($"{name}.mul");
+                if (client == null)
+                {
+                    return $"{name}.mul was not found in the client files.";
+                }
+
+                files.Add((client, Path.Combine(Path.GetDirectoryName(client) ?? string.Empty, $"{name}_OLD.mul"),
+                    Path.Combine(Options.OutputPath, $"{name}.mul")));
+            }
+
+            // Map.Reload closes the open map and statics streams, which would otherwise lock the files
+            Map.Reload();
+
+            var moved = new List<(string Client, string Old)>();
+            try
+            {
+                foreach (var (client, old, _) in files)
+                {
+                    if (File.Exists(old))
+                    {
+                        File.Delete(old);
+                    }
+
+                    File.Move(client, old);
+                    moved.Add((client, old));
+                }
+
+                foreach (var (client, _, patched) in files)
+                {
+                    File.Copy(patched, client, true);
+                }
+
+                return null;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Put back what was moved so the client is left as it was
+                foreach (var (client, old) in moved)
+                {
+                    try
+                    {
+                        if (File.Exists(client))
+                        {
+                            File.Delete(client);
+                        }
+
+                        File.Move(old, client);
+                    }
+                    catch (Exception restoreEx) when (restoreEx is IOException or UnauthorizedAccessException)
+                    {
+                        // Leave the backup where it is; the message tells the user what failed
+                    }
+                }
+
+                return ex.Message;
+            }
+            finally
+            {
+                Map.Reload();
+                PreloadMap.Visible = !CurrentMap.IsCached(showStaticsToolStripMenuItem1.Checked);
+                pictureBox.Invalidate();
+            }
         }
 
         private void OnAltitudeModeNormal(object sender, EventArgs e)
