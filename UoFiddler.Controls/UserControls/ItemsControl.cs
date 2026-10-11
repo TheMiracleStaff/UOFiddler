@@ -1383,13 +1383,16 @@ namespace UoFiddler.Controls.UserControls
                     return;
                 }
 
-                for (int i = 0; i < dialog.FileNames.Length; i++)
+                // Files go into consecutive slots, so keep them in natural name order
+                string[] fileNames = dialog.FileNames.OrderBy(f => f, NaturalFileNameComparer.Instance).ToArray();
+
+                for (int i = 0; i < fileNames.Length; i++)
                 {
                     var currentIdx = index + i;
 
                     if (IsIndexValid(currentIdx))
                     {
-                        AddSingleItem(dialog.FileNames[i], currentIdx);
+                        AddSingleItem(fileNames[i], currentIdx);
                     }
                 }
 
@@ -1443,7 +1446,10 @@ namespace UoFiddler.Controls.UserControls
                             continue;
                         }
 
-                        _itemList[i] = index;
+                        if (_itemList[i] != index)
+                        {
+                            _itemList.Insert(i, index);
+                        }
 
                         done = true;
 
