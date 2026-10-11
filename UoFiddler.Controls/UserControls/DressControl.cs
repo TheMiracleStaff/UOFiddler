@@ -247,6 +247,7 @@ namespace UoFiddler.Controls.UserControls
                 Options.LoadedUltimaClass["Gumps"] = true;
 
                 checkBoxGargoyle.Visible = Art.IsUOAHS();
+                FillRacePresets();
 
                 extractAnimationToolStripMenuItem.Visible = false;
                 DressPic.Image = new Bitmap(DressPic.Width, DressPic.Height);
@@ -283,6 +284,52 @@ namespace UoFiddler.Controls.UserControls
             Reload();
         }
 
+        private bool _fillingRacePresets;
+
+        private void FillRacePresets()
+        {
+            _fillingRacePresets = true;
+            try
+            {
+                comboBoxRacePreset.Items.Clear();
+                foreach (DressRacePreset preset in DressRacePreset.All)
+                {
+                    comboBoxRacePreset.Items.Add(preset);
+                }
+
+                comboBoxRacePreset.SelectedItem = Options.DressRacePreset;
+            }
+            finally
+            {
+                _fillingRacePresets = false;
+            }
+
+            UpdateRaceNames();
+        }
+
+        private void OnChangeRacePreset(object sender, EventArgs e)
+        {
+            if (_fillingRacePresets || comboBoxRacePreset.SelectedItem is not DressRacePreset preset)
+            {
+                return;
+            }
+
+            Options.DressRacePreset = preset;
+            UpdateRaceNames();
+
+            if (_loaded)
+            {
+                DrawPaperdoll();
+            }
+        }
+
+        private void UpdateRaceNames()
+        {
+            checkBoxHuman.Text = Options.DressRacePreset.Races[DressRace.Human].Name;
+            checkBoxElve.Text = Options.DressRacePreset.Races[DressRace.Elf].Name;
+            checkBoxGargoyle.Text = Options.DressRacePreset.Races[DressRace.Gargoyle].Name;
+        }
+
         private void DrawPaperdoll()
         {
             if (!_showPd)
@@ -296,34 +343,19 @@ namespace UoFiddler.Controls.UserControls
                 if (_layerVisible[0])
                 {
                     Bitmap background = null;
-                    if (!_female)
+                    DressRace race = _gargoyle
+                        ? Options.DressRacePreset.Races[DressRace.Gargoyle]
+                        : _elve
+                            ? Options.DressRacePreset.Races[DressRace.Elf]
+                            : _human ? Options.DressRacePreset.Races[DressRace.Human] : null;
+
+                    if (race != null)
                     {
-                        if (_human)
+                        // The body gumps are configurable, so a missing one just leaves the body out
+                        Bitmap bodyGump = Gumps.GetGump(_female ? race.FemaleGump : race.MaleGump);
+                        if (bodyGump != null)
                         {
-                            background = new Bitmap(Gumps.GetGump(0xC));
-                        }
-                        if (_elve)
-                        {
-                            background = new Bitmap(Gumps.GetGump(0xE));
-                        }
-                        if (_gargoyle)
-                        {
-                            background = new Bitmap(Gumps.GetGump(0x29A));
-                        }
-                    }
-                    else
-                    {
-                        if (_human)
-                        {
-                            background = new Bitmap(Gumps.GetGump(0xD));
-                        }
-                        if (_elve)
-                        {
-                            background = new Bitmap(Gumps.GetGump(0xF));
-                        }
-                        if (_gargoyle)
-                        {
-                            background = new Bitmap(Gumps.GetGump(0x299));
+                            background = new Bitmap(bodyGump);
                         }
                     }
 

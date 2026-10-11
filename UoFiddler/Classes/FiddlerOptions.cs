@@ -203,6 +203,12 @@ namespace UoFiddler.Classes
             elem.SetAttribute("map5", Options.MapNames[5]);
             sr.AppendChild(elem);
 
+            comment = dom.CreateComment("Race names and paperdoll body gumps of the Dress tab (default, themiracle)");
+            sr.AppendChild(comment);
+            elem = dom.CreateElement("DressRaces");
+            elem.SetAttribute("preset", Options.DressRacePreset.Key);
+            sr.AppendChild(elem);
+
             comment = dom.CreateComment("Extern Tools settings");
             sr.AppendChild(comment);
 
@@ -408,6 +414,9 @@ namespace UoFiddler.Classes
                 Options.MapNames[4] = elem.GetAttribute("map4");
                 Options.MapNames[5] = elem.GetAttribute("map5");
             }
+
+            elem = (XmlElement)xOptions.SelectSingleNode("DressRaces");
+            Options.DressRacePreset = DressRacePreset.Find(elem?.GetAttribute("preset"));
 
             ExternTools = new List<ExternTool>();
             foreach (XmlElement xTool in xOptions.SelectNodes("ExternTool"))

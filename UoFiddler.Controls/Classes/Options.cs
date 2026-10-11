@@ -82,6 +82,11 @@ namespace UoFiddler.Controls.Classes
         public static string[] MapNames { get; set; } = { "Felucca", "Trammel", "Ilshenar", "Malas", "Tokuno", "Ter Mur" };
 
         /// <summary>
+        /// Race names and paperdoll body gumps used by the Dress tab.
+        /// </summary>
+        public static DressRacePreset DressRacePreset { get; set; } = DressRacePreset.Default;
+
+        /// <summary>
         /// Defines which Plugins to load on startup
         /// </summary>
         public static List<string> PluginsToLoad { get; set; } = new List<string>();
