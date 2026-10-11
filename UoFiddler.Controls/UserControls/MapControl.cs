@@ -542,8 +542,8 @@ namespace UoFiddler.Controls.UserControls
 
         private Point ScreenToTile(Point screen)
         {
-            int x = (int)(screen.X / Zoom) + Round(hScrollBar.Value);
-            int y = (int)(screen.Y / Zoom) + Round(vScrollBar.Value);
+            int x = (int)(screen.X / Zoom) + hScrollBar.Value;
+            int y = (int)(screen.Y / Zoom) + vScrollBar.Value;
             return new Point(Math.Max(0, Math.Min(CurrentMap.Width - 1, x)), Math.Max(0, Math.Min(CurrentMap.Height - 1, y)));
         }
 
@@ -575,8 +575,8 @@ namespace UoFiddler.Controls.UserControls
                 return;
             }
 
-            int originX = Round(hScrollBar.Value);
-            int originY = Round(vScrollBar.Value);
+            int originX = hScrollBar.Value;
+            int originY = vScrollBar.Value;
 
             RectangleF ToScreen(int x1, int y1, int x2, int y2) => new RectangleF(
                 (float)((x1 - originX) * Zoom), (float)((y1 - originY) * Zoom),
@@ -605,8 +605,8 @@ namespace UoFiddler.Controls.UserControls
                 return;
             }
 
-            int originX = Round(hScrollBar.Value);
-            int originY = Round(vScrollBar.Value);
+            int originX = hScrollBar.Value;
+            int originY = vScrollBar.Value;
 
             foreach (Rectangle rect in _regionRectangles)
             {
@@ -641,7 +641,9 @@ namespace UoFiddler.Controls.UserControls
             _regionMap = CurrentMap;
             _regionRectangles.Add(selection);
             UpdateRegionLabel();
-            pictureBox.Invalidate();
+
+            // The area is now shown as a region rectangle; clearing the selection makes that visible
+            ClearSelection();
         }
 
         private void UpdateRegionLabel()
@@ -719,8 +721,8 @@ namespace UoFiddler.Controls.UserControls
 
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
-            int xDelta = Math.Min(CurrentMap.Width, (int)(e.X / Zoom) + Round(hScrollBar.Value));
-            int yDelta = Math.Min(CurrentMap.Height, (int)(e.Y / Zoom) + Round(vScrollBar.Value));
+            int xDelta = Math.Min(CurrentMap.Width, (int)(e.X / Zoom) + hScrollBar.Value);
+            int yDelta = Math.Min(CurrentMap.Height, (int)(e.Y / Zoom) + vScrollBar.Value);
 
             CoordsLabel.Text = $"Coords: {xDelta},{yDelta}";
 
@@ -913,8 +915,8 @@ namespace UoFiddler.Controls.UserControls
             _currentPoint = pictureBox.PointToClient(MousePosition);
             _currentPoint.X = (int)(_currentPoint.X / Zoom);
             _currentPoint.Y = (int)(_currentPoint.Y / Zoom);
-            _currentPoint.X += Round(hScrollBar.Value);
-            _currentPoint.Y += Round(vScrollBar.Value);
+            _currentPoint.X += hScrollBar.Value;
+            _currentPoint.Y += vScrollBar.Value;
         }
 
         private void OnContextClosed(object sender, ToolStripDropDownClosedEventArgs e)
@@ -1142,8 +1144,8 @@ namespace UoFiddler.Controls.UserControls
                 }
             }
 
-            DrawRegionRectangles(e.Graphics);
             DrawSelection(e.Graphics);
+            DrawRegionRectangles(e.Graphics);
 
             if (OverlayObjectTree.Nodes.Count <= 0 || !showMarkersToolStripMenuItem.Checked)
             {
