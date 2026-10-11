@@ -405,18 +405,24 @@ namespace UoFiddler.Classes
             elem = (XmlElement)xOptions.SelectSingleNode("MapNames");
             if (elem != null)
             {
-                // Profiles written before the extra maps lack their names; keep the defaults for those
+                // Keep the defaults for names a profile lacks (written before the extra maps) or still holds
+                // as upstream shipped them (never renamed by the user)
                 for (int i = 0; i < Options.MapNames.Length; i++)
                 {
-                    if (elem.HasAttribute($"map{i}"))
+                    string name = elem.GetAttribute($"map{i}");
+                    if (elem.HasAttribute($"map{i}") && name != Options.UpstreamDefaultMapNames[i])
                     {
-                        Options.MapNames[i] = elem.GetAttribute($"map{i}");
+                        Options.MapNames[i] = name;
                     }
                 }
             }
 
+            // No setting yet keeps the default (The Miracle)
             elem = (XmlElement)xOptions.SelectSingleNode("DressRaces");
-            Options.DressRacePreset = DressRacePreset.Find(elem?.GetAttribute("preset"));
+            if (elem != null)
+            {
+                Options.DressRacePreset = DressRacePreset.Find(elem.GetAttribute("preset"));
+            }
 
             ExternTools = new List<ExternTool>();
             foreach (XmlElement xTool in xOptions.SelectNodes("ExternTool"))

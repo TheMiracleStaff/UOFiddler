@@ -79,12 +79,19 @@ namespace UoFiddler.Controls.Classes
         /// <summary>
         /// Defines the MapNames
         /// </summary>
-        public static string[] MapNames { get; set; } = { "Felucca", "Trammel", "Ilshenar", "Malas", "Tokuno", "Ter Mur", "Map 6", "Map 7" };
+        /// <remarks>Defaults to The Miracle's maps: map 5 is Black, maps 6 and 7 the Underdark pair.</remarks>
+        public static string[] MapNames { get; set; } = { "Felucca", "Trammel", "Ilshenar", "Malas", "Tokuno", "Black", "Underdark", "Underdark Mirror" };
+
+        /// <summary>
+        /// Names upstream UOFiddler gives maps 5 to 7. A profile still holding one was never renamed by its user,
+        /// so it takes the default from <see cref="MapNames"/> instead.
+        /// </summary>
+        public static readonly string[] UpstreamDefaultMapNames = { null, null, null, null, null, "Ter Mur", "Map 6", "Map 7" };
 
         /// <summary>
         /// Race names and paperdoll body gumps used by the Dress tab.
         /// </summary>
-        public static DressRacePreset DressRacePreset { get; set; } = DressRacePreset.Default;
+        public static DressRacePreset DressRacePreset { get; set; } = DressRacePreset.TheMiracle;
 
         /// <summary>
         /// Defines which Plugins to load on startup

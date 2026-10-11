@@ -244,6 +244,10 @@ namespace Ultima
         /// </remarks>
         public static void DetectFacets()
         {
+            // Felucca and Trammel come as 6144 or 7168 wide: follow the files rather than the New Map Size option
+            FitWidth(Felucca);
+            FitWidth(Trammel);
+
             if (MapSizes.TryDetectAnyShape(5, out MapSize size) && (size.Width != TerMur.Width || size.Height != TerMur.Height))
             {
                 TerMur._tiles?.CloseStreams();
@@ -287,6 +291,22 @@ namespace Ultima
             Width = width;
             Height = height;
             _path = path;
+        }
+
+        /// <summary>
+        /// Sets the width of a 6144/7168 wide facet to what its files hold, dropping what was read at the old width.
+        /// </summary>
+        private static void FitWidth(Map map)
+        {
+            if (!MapSizes.TryDetect(map.FileIndex, out MapSize size, out _) || size.Width == map.Width)
+            {
+                return;
+            }
+
+            map._tiles?.CloseStreams();
+            map._tiles = null;
+            map.ResetCache();
+            map.Width = size.Width;
         }
 
         /// <summary>

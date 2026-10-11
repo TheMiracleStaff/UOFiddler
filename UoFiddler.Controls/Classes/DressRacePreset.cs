@@ -48,11 +48,11 @@ namespace UoFiddler.Controls.Classes
         public static IReadOnlyList<DressRacePreset> All { get; } = new[] { Default, TheMiracle };
 
         /// <summary>
-        /// Returns the preset with the given key, or <see cref="Default"/> when there is none.
+        /// Returns the preset with the given key, or <see cref="TheMiracle"/>, this build's default, when there is none.
         /// </summary>
         public static DressRacePreset Find(string key)
         {
-            return All.FirstOrDefault(p => string.Equals(p.Key, key, StringComparison.OrdinalIgnoreCase)) ?? Default;
+            return All.FirstOrDefault(p => string.Equals(p.Key, key, StringComparison.OrdinalIgnoreCase)) ?? TheMiracle;
         }
 
         public override string ToString()
