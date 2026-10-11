@@ -10,6 +10,7 @@
  ***************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
@@ -35,6 +36,7 @@ namespace UoFiddler.Controls.UserControls
 
         private const int _itemHeight = 20;
         private int _selected;
+        private readonly SortedSet<int> _selectedIndexes = new SortedSet<int>();
         private bool _loaded;
         private int _row;
 
@@ -51,6 +53,8 @@ namespace UoFiddler.Controls.UserControls
             set
             {
                 _selected = value;
+                _selectedIndexes.Clear();
+                _selectedIndexes.Add(value);
                 if (IsAncestorSiteInDesignMode || FormsDesignerHelper.IsInDesignMode())
                 {
                     return;
@@ -79,6 +83,7 @@ namespace UoFiddler.Controls.UserControls
             }
 
             _selected = 0;
+            _selectedIndexes.Clear();
             OnLoad(this, EventArgs.Empty);
         }
 
@@ -153,7 +158,8 @@ namespace UoFiddler.Controls.UserControls
                 }
 
                 Rectangle rect = new Rectangle(0, y * _itemHeight, 200, _itemHeight);
-                e.Graphics.FillRectangle(index == _selected ? SystemBrushes.Highlight : SystemBrushes.Window, rect);
+                bool isSelected = index == _selected || _selectedIndexes.Contains(index);
+                e.Graphics.FillRectangle(isSelected ? SystemBrushes.Highlight : SystemBrushes.Window, rect);
 
                 float size = (float)(pictureBox.Width - 200) / 32;
                 Hue hue = Hues.List[index];
@@ -211,7 +217,51 @@ namespace UoFiddler.Controls.UserControls
         {
             pictureBox.Focus();
 
-            UpdateSelection();
+            if (!HuesEditable || (ModifierKeys & (Keys.Control | Keys.Shift)) == 0)
+            {
+                UpdateSelection();
+                return;
+            }
+
+            int index = GetIndex(pictureBox.PointToClient(MousePosition).Y / _itemHeight);
+            if (index < 0)
+            {
+                return;
+            }
+
+            _selectedIndexes.Add(_selected);
+
+            if ((ModifierKeys & Keys.Shift) != 0)
+            {
+                // Range selection from the current anchor
+                int from = Math.Min(_selected, index);
+                int to = Math.Max(_selected, index);
+                if ((ModifierKeys & Keys.Control) == 0)
+                {
+                    _selectedIndexes.Clear();
+                }
+
+                for (int i = from; i <= to; ++i)
+                {
+                    _selectedIndexes.Add(i);
+                }
+            }
+            else if (!_selectedIndexes.Remove(index))
+            {
+                _selectedIndexes.Add(index);
+                _selected = index;
+            }
+            else if (index == _selected && _selectedIndexes.Count > 0)
+            {
+                _selected = _selectedIndexes.Min;
+            }
+            else if (_selectedIndexes.Count == 0)
+            {
+                // Can't deselect the last hue
+                _selectedIndexes.Add(index);
+            }
+
+            pictureBox.Invalidate();
         }
 
         private void UpdateSelection()
@@ -272,21 +322,56 @@ namespace UoFiddler.Controls.UserControls
         private void OnExport(object sender, EventArgs e)
         {
             string path = Options.OutputPath;
-            string fileName = Path.Combine(path, $"Hue {_selected}.txt");
-            Hues.List[_selected].Export(fileName);
-            FileSavedDialog.Show(FindForm(), fileName, "Hue saved successfully.");
+
+            if (_selectedIndexes.Count <= 1)
+            {
+                string fileName = Path.Combine(path, $"Hue {_selected}.txt");
+                Hues.List[_selected].Export(fileName);
+                FileSavedDialog.Show(FindForm(), fileName, "Hue saved successfully.");
+                return;
+            }
+
+            foreach (int index in _selectedIndexes)
+            {
+                Hues.List[index].Export(Path.Combine(path, $"Hue {index}.txt"));
+            }
+
+            FileSavedDialog.Show(FindForm(), path, $"{_selectedIndexes.Count} hues saved successfully.");
         }
 
         private void OnImport(object sender, EventArgs e)
         {
-            using (OpenFileDialog dialog = new OpenFileDialog { Multiselect = false, Title = "Choose txt file to import", CheckFileExists = true, Filter = "txt files (*.txt)|*.txt" })
+            using (OpenFileDialog dialog = new OpenFileDialog { Multiselect = true, Title = "Choose txt file(s) to import", CheckFileExists = true, Filter = "txt files (*.txt)|*.txt" })
             {
                 if (dialog.ShowDialog() != DialogResult.OK)
                 {
                     return;
                 }
 
-                Hues.List[_selected].Import(dialog.FileName);
+                // Multiple files are imported into consecutive hues starting from the selected one
+                string[] files = dialog.FileNames.OrderBy(f => f, NaturalFileNameComparer.Instance).ToArray();
+                if (_selected + files.Length > Hues.List.Length)
+                {
+                    MessageBox.Show($"Not enough hues: {files.Length} files starting from hue {_selected} exceed the last hue.",
+                        "Import", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                if (files.Length > 1)
+                {
+                    DialogResult result = MessageBox.Show(
+                        $"Import {files.Length} files into hues {_selected} to {_selected + files.Length - 1}? Existing data will be replaced.",
+                        "Import", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                    if (result != DialogResult.Yes)
+                    {
+                        return;
+                    }
+                }
+
+                for (int i = 0; i < files.Length; ++i)
+                {
+                    Hues.List[_selected + i].Import(files[i], resetNamesOnImportToolStripMenuItem.Checked);
+                }
             }
 
             Options.ChangedUltimaClass["Hues"] = true;
