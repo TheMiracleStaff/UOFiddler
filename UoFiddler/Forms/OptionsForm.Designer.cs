@@ -45,6 +45,13 @@ namespace UoFiddler.Forms
             checkBoxItemClip = new System.Windows.Forms.CheckBox();
             label1 = new System.Windows.Forms.Label();
             numericUpDownItemSizeWidth = new System.Windows.Forms.NumericUpDown();
+            labelItemSend = new System.Windows.Forms.Label();
+            labelItemSendCmd = new System.Windows.Forms.Label();
+            itemSendCmdText = new System.Windows.Forms.TextBox();
+            labelItemSendCmdCtrl = new System.Windows.Forms.Label();
+            itemSendCmdCtrlText = new System.Windows.Forms.TextBox();
+            labelItemSendCmdAlt = new System.Windows.Forms.Label();
+            itemSendCmdAltText = new System.Windows.Forms.TextBox();
             checkBoxCacheData = new System.Windows.Forms.CheckBox();
             groupBox2 = new System.Windows.Forms.GroupBox();
             checkBoxPolSoundIdOffset = new System.Windows.Forms.CheckBox();
@@ -111,11 +118,18 @@ namespace UoFiddler.Forms
             groupBox1.Controls.Add(checkBoxItemClip);
             groupBox1.Controls.Add(label1);
             groupBox1.Controls.Add(numericUpDownItemSizeWidth);
+            groupBox1.Controls.Add(labelItemSend);
+            groupBox1.Controls.Add(labelItemSendCmd);
+            groupBox1.Controls.Add(itemSendCmdText);
+            groupBox1.Controls.Add(labelItemSendCmdCtrl);
+            groupBox1.Controls.Add(itemSendCmdCtrlText);
+            groupBox1.Controls.Add(labelItemSendCmdAlt);
+            groupBox1.Controls.Add(itemSendCmdAltText);
             groupBox1.Location = new System.Drawing.Point(16, 164);
             groupBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            groupBox1.Size = new System.Drawing.Size(258, 118);
+            groupBox1.Size = new System.Drawing.Size(258, 204);
             groupBox1.TabIndex = 1;
             groupBox1.TabStop = false;
             groupBox1.Text = "Item Tab";
@@ -166,6 +180,74 @@ namespace UoFiddler.Forms
             numericUpDownItemSizeWidth.TabIndex = 0;
             toolTip1.SetToolTip(numericUpDownItemSizeWidth, "Width");
             numericUpDownItemSizeWidth.Value = new decimal(new int[] { 96, 0, 0, 0 });
+            //
+            // labelItemSend
+            //
+            labelItemSend.AutoSize = true;
+            labelItemSend.Location = new System.Drawing.Point(7, 84);
+            labelItemSend.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelItemSend.Name = "labelItemSend";
+            labelItemSend.Size = new System.Drawing.Size(160, 15);
+            labelItemSend.TabIndex = 4;
+            labelItemSend.Text = "Double click sends to client:";
+            toolTip1.SetToolTip(labelItemSend, "Commands typed into the client when \"Double click to send to client\" is on in the Items tab.\r\nThe item id is added at the end in decimal (e.g. 'add static 3701), then Enter is pressed.");
+            //
+            // labelItemSendCmd
+            //
+            labelItemSendCmd.AutoSize = true;
+            labelItemSendCmd.Location = new System.Drawing.Point(7, 109);
+            labelItemSendCmd.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelItemSendCmd.Name = "labelItemSendCmd";
+            labelItemSendCmd.Size = new System.Drawing.Size(34, 15);
+            labelItemSendCmd.TabIndex = 5;
+            labelItemSendCmd.Text = "Click";
+            //
+            // itemSendCmdText
+            //
+            itemSendCmdText.Location = new System.Drawing.Point(80, 105);
+            itemSendCmdText.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            itemSendCmdText.Name = "itemSendCmdText";
+            itemSendCmdText.Size = new System.Drawing.Size(165, 23);
+            itemSendCmdText.TabIndex = 6;
+            toolTip1.SetToolTip(itemSendCmdText, "Sent on double click, followed by the item id");
+            //
+            // labelItemSendCmdCtrl
+            //
+            labelItemSendCmdCtrl.AutoSize = true;
+            labelItemSendCmdCtrl.Location = new System.Drawing.Point(7, 139);
+            labelItemSendCmdCtrl.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelItemSendCmdCtrl.Name = "labelItemSendCmdCtrl";
+            labelItemSendCmdCtrl.Size = new System.Drawing.Size(62, 15);
+            labelItemSendCmdCtrl.TabIndex = 7;
+            labelItemSendCmdCtrl.Text = "Ctrl+Click";
+            //
+            // itemSendCmdCtrlText
+            //
+            itemSendCmdCtrlText.Location = new System.Drawing.Point(80, 135);
+            itemSendCmdCtrlText.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            itemSendCmdCtrlText.Name = "itemSendCmdCtrlText";
+            itemSendCmdCtrlText.Size = new System.Drawing.Size(165, 23);
+            itemSendCmdCtrlText.TabIndex = 8;
+            toolTip1.SetToolTip(itemSendCmdCtrlText, "Sent on Ctrl + double click, followed by the item id");
+            //
+            // labelItemSendCmdAlt
+            //
+            labelItemSendCmdAlt.AutoSize = true;
+            labelItemSendCmdAlt.Location = new System.Drawing.Point(7, 169);
+            labelItemSendCmdAlt.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelItemSendCmdAlt.Name = "labelItemSendCmdAlt";
+            labelItemSendCmdAlt.Size = new System.Drawing.Size(58, 15);
+            labelItemSendCmdAlt.TabIndex = 9;
+            labelItemSendCmdAlt.Text = "Alt+Click";
+            //
+            // itemSendCmdAltText
+            //
+            itemSendCmdAltText.Location = new System.Drawing.Point(80, 165);
+            itemSendCmdAltText.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            itemSendCmdAltText.Name = "itemSendCmdAltText";
+            itemSendCmdAltText.Size = new System.Drawing.Size(165, 23);
+            itemSendCmdAltText.TabIndex = 10;
+            toolTip1.SetToolTip(itemSendCmdAltText, "Sent on Alt + double click, followed by the item id");
             // 
             // checkBoxCacheData
             // 
@@ -788,6 +870,13 @@ namespace UoFiddler.Forms
         private System.Windows.Forms.TextBox map8Nametext;
         private System.Windows.Forms.NumericUpDown numericUpDownItemSizeHeight;
         private System.Windows.Forms.NumericUpDown numericUpDownItemSizeWidth;
+        private System.Windows.Forms.Label labelItemSend;
+        private System.Windows.Forms.Label labelItemSendCmd;
+        private System.Windows.Forms.TextBox itemSendCmdText;
+        private System.Windows.Forms.Label labelItemSendCmdCtrl;
+        private System.Windows.Forms.TextBox itemSendCmdCtrlText;
+        private System.Windows.Forms.Label labelItemSendCmdAlt;
+        private System.Windows.Forms.TextBox itemSendCmdAltText;
         private System.Windows.Forms.TextBox textBoxOutputPath;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.GroupBox ColorsGroupBox;

@@ -207,6 +207,16 @@ namespace UoFiddler.Classes
             elem.SetAttribute("preset", Options.DressRacePreset.Key);
             sr.AppendChild(elem);
 
+            comment = dom.CreateComment("Commands typed into the client on double click in the Items tab, plain, with Ctrl and with Alt");
+            sr.AppendChild(comment);
+            comment = dom.CreateComment("The item id is appended in decimal, e.g. 'add static 3701");
+            sr.AppendChild(comment);
+            elem = dom.CreateElement("ItemSendCommands");
+            elem.SetAttribute("cmd", Options.ItemSendCommand);
+            elem.SetAttribute("ctrl", Options.ItemSendCommandCtrl);
+            elem.SetAttribute("alt", Options.ItemSendCommandAlt);
+            sr.AppendChild(elem);
+
             comment = dom.CreateComment("Extern Tools settings");
             sr.AppendChild(comment);
 
@@ -422,6 +432,25 @@ namespace UoFiddler.Classes
             if (elem != null)
             {
                 Options.DressRacePreset = DressRacePreset.Find(elem.GetAttribute("preset"));
+            }
+
+            elem = (XmlElement)xOptions.SelectSingleNode("ItemSendCommands");
+            if (elem != null)
+            {
+                if (elem.HasAttribute("cmd"))
+                {
+                    Options.ItemSendCommand = elem.GetAttribute("cmd");
+                }
+
+                if (elem.HasAttribute("ctrl"))
+                {
+                    Options.ItemSendCommandCtrl = elem.GetAttribute("ctrl");
+                }
+
+                if (elem.HasAttribute("alt"))
+                {
+                    Options.ItemSendCommandAlt = elem.GetAttribute("alt");
+                }
             }
 
             ExternTools = new List<ExternTool>();

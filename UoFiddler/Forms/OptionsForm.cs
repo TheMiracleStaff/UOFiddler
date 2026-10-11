@@ -81,6 +81,9 @@ namespace UoFiddler.Forms
             numericUpDownItemSizeWidth.Value = Options.ArtItemSizeWidth;
             numericUpDownItemSizeHeight.Value = Options.ArtItemSizeHeight;
             checkBoxItemClip.Checked = Options.ArtItemClip;
+            itemSendCmdText.Text = Options.ItemSendCommand;
+            itemSendCmdCtrlText.Text = Options.ItemSendCommandCtrl;
+            itemSendCmdAltText.Text = Options.ItemSendCommandAlt;
             _mapNameTextBoxes = new[] { map0Nametext, map1Nametext, map2Nametext, map3Nametext, map4Nametext, map5Nametext, map6Nametext, map7Nametext, map8Nametext };
             for (int i = 0; i < _mapNameTextBoxes.Length; i++)
             {
@@ -191,6 +194,9 @@ namespace UoFiddler.Forms
 
             Options.MapCmd = cmdtext.Text;
             Options.MapArgs = argstext.Text;
+            Options.ItemSendCommand = itemSendCmdText.Text;
+            Options.ItemSendCommandCtrl = itemSendCmdCtrlText.Text;
+            Options.ItemSendCommandAlt = itemSendCmdAltText.Text;
 
             if (Directory.Exists(textBoxOutputPath.Text))
             {

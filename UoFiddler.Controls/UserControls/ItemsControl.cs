@@ -38,12 +38,15 @@ namespace UoFiddler.Controls.UserControls
 
             RefMarker = this;
             DetailTextBox.AddBasicContextMenu();
+            InitSendToClientToolStrip();
         }
 
         private static readonly Regex _hexIndexRegex = new(@"0[xX][0-9a-fA-F]+", RegexOptions.Compiled);
 
         private List<int> _itemList = new List<int>();
         private bool _showFreeSlots;
+        private CheckBox _sendToClientCheckBox;
+        private ToolStripComboBox _clientComboBox;
 
         private int _selectedGraphicId = -1;
 
@@ -1306,6 +1309,18 @@ namespace UoFiddler.Controls.UserControls
 
         public void ItemsTileView_MouseDoubleClick(object sender, MouseEventArgs e)
         {
+            if (_sendToClientCheckBox.Checked && e.Button == MouseButtons.Left)
+            {
+                // The tile under the mouse: Ctrl + click may just have toggled it out of the selection
+                int index = ItemsTileView.GetIndexAtLocation(e.Location);
+                if (index >= 0 && index < _itemList.Count)
+                {
+                    SendItemToClient(_itemList[index], ModifierKeys);
+                }
+
+                return;
+            }
+
             if (ItemsTileView.SelectedIndices.Count == 0)
             {
                 return;
@@ -1316,6 +1331,113 @@ namespace UoFiddler.Controls.UserControls
                 TopMost = true
             };
             f.Show();
+        }
+
+        private void InitSendToClientToolStrip()
+        {
+            _sendToClientCheckBox = new CheckBox
+            {
+                AutoSize = true,
+                BackColor = Color.Transparent,
+                Text = "Double click to send to client"
+            };
+            _sendToClientCheckBox.CheckedChanged += SendToClientCheckBox_CheckedChanged;
+
+            var checkBoxHost = new ToolStripControlHost(_sendToClientCheckBox)
+            {
+                Margin = new Padding(4, 3, 0, 2),
+                ToolTipText = "Double click types the command from Options, followed by the item id, into the chosen client and presses Enter.\r\n" +
+                              "Ctrl + double click and Alt + double click send the two other commands."
+            };
+
+            _clientComboBox = new ToolStripComboBox
+            {
+                AutoSize = false,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Size = new Size(280, 28),
+                ToolTipText = "Running ClassicUO clients",
+                Visible = false
+            };
+            _clientComboBox.DropDown += (_, _) => RefreshClientList();
+
+            ToolStrip.Items.AddRange(new ToolStripItem[] { new ToolStripSeparator(), checkBoxHost, _clientComboBox });
+        }
+
+        private void SendToClientCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            _clientComboBox.Visible = _sendToClientCheckBox.Checked;
+            if (_sendToClientCheckBox.Checked)
+            {
+                RefreshClientList();
+            }
+        }
+
+        /// <summary>
+        /// Fills the client list with the running ClassicUO processes, keeping the chosen one if it is still there.
+        /// </summary>
+        private void RefreshClientList()
+        {
+            int selectedId = (_clientComboBox.SelectedItem as ClientProcess)?.ProcessId ?? -1;
+            List<ClientProcess> clients = ClientProcess.FindAll();
+
+            _clientComboBox.BeginUpdate();
+            _clientComboBox.Items.Clear();
+            foreach (ClientProcess client in clients)
+            {
+                _clientComboBox.Items.Add(client);
+            }
+
+            int index = clients.FindIndex(c => c.ProcessId == selectedId);
+            if (index < 0 && clients.Count > 0)
+            {
+                index = 0;
+            }
+
+            _clientComboBox.SelectedIndex = index;
+            _clientComboBox.EndUpdate();
+        }
+
+        private void SendItemToClient(int graphic, Keys modifiers)
+        {
+            string baseCommand;
+            if ((modifiers & Keys.Control) == Keys.Control)
+            {
+                baseCommand = Options.ItemSendCommandCtrl;
+            }
+            else if ((modifiers & Keys.Alt) == Keys.Alt)
+            {
+                baseCommand = Options.ItemSendCommandAlt;
+            }
+            else
+            {
+                baseCommand = Options.ItemSendCommand;
+            }
+
+            if (string.IsNullOrWhiteSpace(baseCommand))
+            {
+                return;
+            }
+
+            string command = $"{baseCommand.Trim()} {graphic}";
+
+            if (_clientComboBox.SelectedItem is not ClientProcess client)
+            {
+                RefreshClientList();
+                client = _clientComboBox.SelectedItem as ClientProcess;
+            }
+
+            if (client == null)
+            {
+                MessageBox.Show("No ClassicUO client is running.", "Send to client", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (!client.SendText(command))
+            {
+                RefreshClientList();
+                MessageBox.Show($"{client} is no longer running. Choose another client and try again.",
+                    "Send to client", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void ItemsTileView_KeyDown(object sender, KeyEventArgs e)

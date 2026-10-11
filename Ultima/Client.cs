@@ -491,6 +491,44 @@ namespace Ultima
             return SendText(String.Format(format, args));
         }
 
+        /// <summary>
+        /// Sends <paramref name="text" /> followed by Enter to a given client window, rather than the one found by
+        /// <see cref="Handle" />. Lets the caller pick among several running clients.
+        /// </summary>
+        /// <param name="window">The client's main window.</param>
+        /// <param name="text">The text to type.</param>
+        /// <param name="sdlClient">True for ClassicUO and other SDL based clients, which take Enter as a key press.</param>
+        /// <returns>True if the window took the messages, false if it is gone.</returns>
+        public static bool SendText(IntPtr window, string text, bool sdlClient)
+        {
+            if (window == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            foreach (char c in text)
+            {
+                int lParam = 1 | ((NativeMethods.OemKeyScan(c) & 0xFF) << 16) | (0x3 << 30);
+                if (!NativeMethods.PostMessage(window, WM_CHAR, c, lParam))
+                {
+                    return false;
+                }
+            }
+
+            if (sdlClient)
+            {
+                const int WM_KEYDOWN = 0x100;
+                const int WM_KEYUP = 0x101;
+                const int VK_RETURN = 0x0D;
+
+                NativeMethods.PostMessage(window, WM_KEYDOWN, VK_RETURN, 0x001C0001);
+                return NativeMethods.PostMessage(window, WM_KEYUP, VK_RETURN, 0x001C0001);
+            }
+
+            int enterParam = 1 | ((NativeMethods.OemKeyScan('\r') & 0xFF) << 16) | (0x3 << 30);
+            return NativeMethods.PostMessage(window, WM_CHAR, '\r', enterParam);
+        }
+
         private static ClientWindowHandle FindHandle()
         {
             ClientWindowHandle hWnd;
