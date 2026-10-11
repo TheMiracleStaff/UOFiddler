@@ -38,12 +38,15 @@ namespace UoFiddler.Controls.UserControls
 
             RefMarker = this;
             DetailTextBox.AddBasicContextMenu();
+            InitSendToClientToolStrip();
         }
 
         private static readonly Regex _hexIndexRegex = new(@"0[xX][0-9a-fA-F]+", RegexOptions.Compiled);
 
         private List<int> _itemList = new List<int>();
         private bool _showFreeSlots;
+        private CheckBox _sendToClientCheckBox;
+        private ToolStripComboBox _clientComboBox;
 
         private int _selectedGraphicId = -1;
 
@@ -391,10 +394,16 @@ namespace UoFiddler.Controls.UserControls
             int yMin = 0;
             int yMax = 0;
 
-            const int defaultSplitterDistance = 180;
+            // Paperdoll gumps linked to the item through its tiledata animation id
+            _detailArtHeight = bit?.Height ?? 0;
+            _detailGumpMaleHeight = SetDetailGump(DetailGumpMalePictureBox, item.Animation, _maleGumpOffset);
+            _detailGumpFemaleHeight = SetDetailGump(DetailGumpFemalePictureBox, item.Animation, _femaleGumpOffset);
+
+            // Resize first so the art below is drawn at the final picture box size
+            UpdateDetailSplitter();
+
             if (bit == null)
             {
-                splitContainer2.SplitterDistance = defaultSplitterDistance;
                 Bitmap newBit = new Bitmap(DetailPictureBox.Size.Width, DetailPictureBox.Size.Height);
                 using (Graphics newGraph = Graphics.FromImage(newBit))
                 {
@@ -406,9 +415,6 @@ namespace UoFiddler.Controls.UserControls
             }
             else
             {
-                var distance = bit.Size.Height + 10;
-                splitContainer2.SplitterDistance = distance < defaultSplitterDistance ? defaultSplitterDistance : distance;
-
                 Bitmap newBit = new Bitmap(DetailPictureBox.Size.Width, DetailPictureBox.Size.Height);
                 using (Graphics newGraph = Graphics.FromImage(newBit))
                 {
@@ -447,6 +453,63 @@ namespace UoFiddler.Controls.UserControls
 
             DetailTextBox.Clear();
             DetailTextBox.AppendText(sb.ToString());
+        }
+
+        private int _detailArtHeight;
+        private int _detailGumpMaleHeight;
+        private int _detailGumpFemaleHeight;
+
+        /// <summary>
+        /// Shows the gump at animation + offset in the given picture box.
+        /// </summary>
+        /// <returns>Height of the shown gump, or 0 when there is none.</returns>
+        private static int SetDetailGump(PictureBox pictureBox, int animation, int gumpOffset)
+        {
+            pictureBox.BackColor = Options.PreviewBackgroundColor;
+
+            // Gumps.GetGump returns the cached bitmap, so show a copy that can be disposed safely
+            Bitmap gump = animation > 0 ? Gumps.GetGump(animation + gumpOffset) : null;
+
+            pictureBox.Image?.Dispose();
+            pictureBox.Image = gump == null ? null : new Bitmap(gump);
+
+            return gump?.Height ?? 0;
+        }
+
+        /// <summary>
+        /// Sizes the detail image area to fit the image of the visible tab.
+        /// </summary>
+        private void UpdateDetailSplitter()
+        {
+            const int defaultSplitterDistance = 180;
+
+            int imageHeight = DetailTabControl.SelectedTab == DetailGumpMaleTabPage
+                ? _detailGumpMaleHeight
+                : DetailTabControl.SelectedTab == DetailGumpFemaleTabPage
+                    ? _detailGumpFemaleHeight
+                    : _detailArtHeight;
+
+            if (imageHeight == 0)
+            {
+                splitContainer2.SplitterDistance = defaultSplitterDistance;
+                return;
+            }
+
+            int tabHeaderHeight = DetailTabControl.Height - DetailTabControl.DisplayRectangle.Height;
+            int distance = imageHeight + 10 + tabHeaderHeight;
+            splitContainer2.SplitterDistance = Math.Max(defaultSplitterDistance, distance);
+        }
+
+        private void DetailTabControl_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (DetailTabControl.SelectedTab == DetailArtTabPage && _selectedGraphicId >= 0)
+            {
+                // The art is drawn at the picture box size, which may have changed while hidden
+                UpdateDetail(_selectedGraphicId);
+                return;
+            }
+
+            UpdateDetailSplitter();
         }
 
         private void ChangeBackgroundColorToolStripMenuItemDetail_Click(object sender, EventArgs e)
@@ -1246,6 +1309,18 @@ namespace UoFiddler.Controls.UserControls
 
         public void ItemsTileView_MouseDoubleClick(object sender, MouseEventArgs e)
         {
+            if (_sendToClientCheckBox.Checked && e.Button == MouseButtons.Left)
+            {
+                // The tile under the mouse: Ctrl + click may just have toggled it out of the selection
+                int index = ItemsTileView.GetIndexAtLocation(e.Location);
+                if (index >= 0 && index < _itemList.Count)
+                {
+                    SendItemToClient(_itemList[index], ModifierKeys);
+                }
+
+                return;
+            }
+
             if (ItemsTileView.SelectedIndices.Count == 0)
             {
                 return;
@@ -1256,6 +1331,113 @@ namespace UoFiddler.Controls.UserControls
                 TopMost = true
             };
             f.Show();
+        }
+
+        private void InitSendToClientToolStrip()
+        {
+            _sendToClientCheckBox = new CheckBox
+            {
+                AutoSize = true,
+                BackColor = Color.Transparent,
+                Text = "Double click to send to client"
+            };
+            _sendToClientCheckBox.CheckedChanged += SendToClientCheckBox_CheckedChanged;
+
+            var checkBoxHost = new ToolStripControlHost(_sendToClientCheckBox)
+            {
+                Margin = new Padding(4, 3, 0, 2),
+                ToolTipText = "Double click types the command from Options, followed by the item id, into the chosen client and presses Enter.\r\n" +
+                              "Ctrl + double click and Alt + double click send the two other commands."
+            };
+
+            _clientComboBox = new ToolStripComboBox
+            {
+                AutoSize = false,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Size = new Size(280, 28),
+                ToolTipText = "Running ClassicUO clients",
+                Visible = false
+            };
+            _clientComboBox.DropDown += (_, _) => RefreshClientList();
+
+            ToolStrip.Items.AddRange(new ToolStripItem[] { new ToolStripSeparator(), checkBoxHost, _clientComboBox });
+        }
+
+        private void SendToClientCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            _clientComboBox.Visible = _sendToClientCheckBox.Checked;
+            if (_sendToClientCheckBox.Checked)
+            {
+                RefreshClientList();
+            }
+        }
+
+        /// <summary>
+        /// Fills the client list with the running ClassicUO processes, keeping the chosen one if it is still there.
+        /// </summary>
+        private void RefreshClientList()
+        {
+            int selectedId = (_clientComboBox.SelectedItem as ClientProcess)?.ProcessId ?? -1;
+            List<ClientProcess> clients = ClientProcess.FindAll();
+
+            _clientComboBox.BeginUpdate();
+            _clientComboBox.Items.Clear();
+            foreach (ClientProcess client in clients)
+            {
+                _clientComboBox.Items.Add(client);
+            }
+
+            int index = clients.FindIndex(c => c.ProcessId == selectedId);
+            if (index < 0 && clients.Count > 0)
+            {
+                index = 0;
+            }
+
+            _clientComboBox.SelectedIndex = index;
+            _clientComboBox.EndUpdate();
+        }
+
+        private void SendItemToClient(int graphic, Keys modifiers)
+        {
+            string baseCommand;
+            if ((modifiers & Keys.Control) == Keys.Control)
+            {
+                baseCommand = Options.ItemSendCommandCtrl;
+            }
+            else if ((modifiers & Keys.Alt) == Keys.Alt)
+            {
+                baseCommand = Options.ItemSendCommandAlt;
+            }
+            else
+            {
+                baseCommand = Options.ItemSendCommand;
+            }
+
+            if (string.IsNullOrWhiteSpace(baseCommand))
+            {
+                return;
+            }
+
+            string command = $"{baseCommand.Trim()} {graphic}";
+
+            if (_clientComboBox.SelectedItem is not ClientProcess client)
+            {
+                RefreshClientList();
+                client = _clientComboBox.SelectedItem as ClientProcess;
+            }
+
+            if (client == null)
+            {
+                MessageBox.Show("No ClassicUO client is running.", "Send to client", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (!client.SendText(command))
+            {
+                RefreshClientList();
+                MessageBox.Show($"{client} is no longer running. Choose another client and try again.",
+                    "Send to client", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void ItemsTileView_KeyDown(object sender, KeyEventArgs e)
@@ -1383,13 +1565,16 @@ namespace UoFiddler.Controls.UserControls
                     return;
                 }
 
-                for (int i = 0; i < dialog.FileNames.Length; i++)
+                // Files go into consecutive slots, so keep them in natural name order
+                string[] fileNames = dialog.FileNames.OrderBy(f => f, NaturalFileNameComparer.Instance).ToArray();
+
+                for (int i = 0; i < fileNames.Length; i++)
                 {
                     var currentIdx = index + i;
 
                     if (IsIndexValid(currentIdx))
                     {
-                        AddSingleItem(dialog.FileNames[i], currentIdx);
+                        AddSingleItem(fileNames[i], currentIdx);
                     }
                 }
 
@@ -1443,7 +1628,10 @@ namespace UoFiddler.Controls.UserControls
                             continue;
                         }
 
-                        _itemList[i] = index;
+                        if (_itemList[i] != index)
+                        {
+                            _itemList.Insert(i, index);
+                        }
 
                         done = true;
 

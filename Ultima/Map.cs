@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Text;
+using Ultima.Maps;
 using Ultima.Statics;
 
 namespace Ultima
@@ -167,12 +170,10 @@ namespace Ultima
         /// </summary>
         public static void InvalidateAltitudeShadingCache()
         {
-            Felucca.ClearLitCache();
-            Trammel.ClearLitCache();
-            Ilshenar.ClearLitCache();
-            Malas.ClearLitCache();
-            Tokuno.ClearLitCache();
-            TerMur.ClearLitCache();
+            foreach (Map map in All)
+            {
+                map.ClearLitCache();
+            }
         }
 
         private void ClearLitCache()
@@ -198,8 +199,84 @@ namespace Ultima
         public static readonly Map Ilshenar = new Map(2, 2, 2304, 1600);
         public static readonly Map Malas = new Map(3, 3, 2560, 2048);
         public static readonly Map Tokuno = new Map(4, 4, 1448, 1448);
-        public static readonly Map TerMur = new Map(5, 5, 1280, 4096);
+
+        /// <summary>
+        /// Map 5. Resized by <see cref="DetectFacets"/> when the client uses file 5 for a map of another shape.
+        /// </summary>
+        public static Map TerMur = new Map(5, 5, 1280, 4096);
+
         public static Map Custom;
+
+        /// <summary>
+        /// The Miracle's maps past the standard six, as (map id, file index), in map id order.
+        /// Like Trammel on map0, Underdark Mirror shares Underdark's map6.
+        /// </summary>
+        private static readonly (int MapId, int FileIndex)[] _extraMapLayout =
+        {
+            (6, 6), // Underdark
+            (7, 6), // Underdark Mirror
+            (8, 8)  // Darkcore
+        };
+
+        /// <summary>
+        /// Most maps past the standard six that <see cref="DetectFacets"/> can add.
+        /// </summary>
+        public static int MaximumExtraMaps => _extraMapLayout.Length;
+
+        private static readonly List<Map> _extraMaps = new List<Map>();
+
+        /// <summary>
+        /// The maps past the standard six found in the client, in map id order.
+        /// </summary>
+        public static IReadOnlyList<Map> ExtraMaps => _extraMaps;
+
+        /// <summary>
+        /// Every map, indexed by map id: the standard six, then <see cref="ExtraMaps"/>.
+        /// </summary>
+        public static IReadOnlyList<Map> All => new[] { Felucca, Trammel, Ilshenar, Malas, Tokuno, TerMur }.Concat(_extraMaps).ToList();
+
+        /// <summary>
+        /// Map number as the server and client know it; it can differ from <see cref="FileIndex"/>.
+        /// </summary>
+        public int MapId => _mapId;
+
+        /// <summary>
+        /// Fits map 5 and the extra maps to the client's files. Call after the client files change.
+        /// </summary>
+        /// <remarks>
+        /// The Miracle ships a Felucca sized map5 (Black) and maps past the standard six laid out in
+        /// <see cref="_extraMapLayout"/>; each is added when its file is there. Adding stops at the first
+        /// missing one, so <see cref="All"/> stays indexed by map id. A standard client has none of them.
+        /// </remarks>
+        public static void DetectFacets()
+        {
+            // Felucca and Trammel come as 6144 or 7168 wide: follow the files rather than the New Map Size option
+            FitWidth(Felucca);
+            FitWidth(Trammel);
+
+            if (MapSizes.TryDetectAnyShape(5, out MapSize size) && (size.Width != TerMur.Width || size.Height != TerMur.Height))
+            {
+                TerMur._tiles?.CloseStreams();
+                TerMur = new Map(5, 5, size.Width, size.Height);
+            }
+
+            foreach (Map map in _extraMaps)
+            {
+                map._tiles?.CloseStreams();
+            }
+
+            _extraMaps.Clear();
+
+            foreach (var (mapId, fileIndex) in _extraMapLayout)
+            {
+                if (!MapSizes.TryDetectAnyShape(fileIndex, out size))
+                {
+                    break;
+                }
+
+                _extraMaps.Add(new Map(fileIndex, mapId, size.Width, size.Height));
+            }
+        }
 
         public static void StartUpSetDiff(bool value)
         {
@@ -225,39 +302,37 @@ namespace Ultima
         }
 
         /// <summary>
+        /// Sets the width of a 6144/7168 wide facet to what its files hold, dropping what was read at the old width.
+        /// </summary>
+        private static void FitWidth(Map map)
+        {
+            if (!MapSizes.TryDetect(map.FileIndex, out MapSize size, out _) || size.Width == map.Width)
+            {
+                return;
+            }
+
+            map._tiles?.CloseStreams();
+            map._tiles = null;
+            map.ResetCache();
+            map.Width = size.Width;
+        }
+
+        /// <summary>
         /// Sets cache-vars to null
         /// </summary>
         public static void Reload()
         {
-            Felucca.Tiles.CloseStreams();
-            Trammel.Tiles.CloseStreams();
-            Ilshenar.Tiles.CloseStreams();
-            Malas.Tiles.CloseStreams();
-            Tokuno.Tiles.CloseStreams();
-            TerMur.Tiles.CloseStreams();
-
-            Felucca.Tiles.StaticIndexInit = false;
-            Trammel.Tiles.StaticIndexInit = false;
-            Ilshenar.Tiles.StaticIndexInit = false;
-            Malas.Tiles.StaticIndexInit = false;
-            Tokuno.Tiles.StaticIndexInit = false;
-            TerMur.Tiles.StaticIndexInit = false;
-
-            Felucca._cache = Trammel._cache = Ilshenar._cache = Malas._cache = Tokuno._cache = TerMur._cache = null;
-            Felucca._tiles = Trammel._tiles = Ilshenar._tiles = Malas._tiles = Tokuno._tiles = TerMur._tiles = null;
-            Felucca._cacheNoStatics =
-                Trammel._cacheNoStatics =
-                Ilshenar._cacheNoStatics = Malas._cacheNoStatics = Tokuno._cacheNoStatics = TerMur._cacheNoStatics = null;
-            Felucca._cacheNoPatch =
-                Trammel._cacheNoPatch =
-                Ilshenar._cacheNoPatch = Malas._cacheNoPatch = Tokuno._cacheNoPatch = TerMur._cacheNoPatch = null;
-            Felucca._cacheNoStaticsNoPatch =
-                Trammel._cacheNoStaticsNoPatch =
-                Ilshenar._cacheNoStaticsNoPatch =
-                Malas._cacheNoStaticsNoPatch = Tokuno._cacheNoStaticsNoPatch = TerMur._cacheNoStaticsNoPatch = null;
-
-            foreach (Map m in new[] { Felucca, Trammel, Ilshenar, Malas, Tokuno, TerMur })
+            foreach (Map m in All)
             {
+                m.Tiles.CloseStreams();
+                m.Tiles.StaticIndexInit = false;
+
+                m._cache = null;
+                m._tiles = null;
+                m._cacheNoStatics = null;
+                m._cacheNoPatch = null;
+                m._cacheNoStaticsNoPatch = null;
+
                 m.ClearMipCaches();
                 m.ClearAltitudeCaches();
                 m.ClearLitCache();

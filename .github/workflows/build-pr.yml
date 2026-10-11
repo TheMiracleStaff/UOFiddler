@@ -3,7 +3,9 @@ name: Build (PR)
 on:
   pull_request:
     branches:
-      - "**"
+      - "tm-main"
+    paths-ignore:
+      - '**/README.md'
 
 permissions:
   contents: read

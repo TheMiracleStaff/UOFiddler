@@ -31,7 +31,12 @@ namespace UoFiddler.Controls.Forms
             numericUpDown1.Value = x;
             numericUpDown2.Value = y;
 
-            comboBox1.Items.AddRange(Options.MapNames);
+            // Only the maps this client has, so a marker can't land on a map without a group
+            for (int mapId = 0; mapId < Ultima.Map.All.Count; mapId++)
+            {
+                comboBox1.Items.Add(mapId < Options.MapNames.Length ? Options.MapNames[mapId] : $"Map {mapId}");
+            }
+
             comboBox1.SelectedIndex = map;
 
             pictureBox1.BackColor = _lastColor;

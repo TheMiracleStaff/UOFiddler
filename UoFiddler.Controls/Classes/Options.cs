@@ -79,7 +79,39 @@ namespace UoFiddler.Controls.Classes
         /// <summary>
         /// Defines the MapNames
         /// </summary>
-        public static string[] MapNames { get; set; } = { "Felucca", "Trammel", "Ilshenar", "Malas", "Tokuno", "Ter Mur" };
+        /// <remarks>Defaults to The Miracle's maps: map 5 is Black, maps 6 and 7 the Underdark pair, map 8 Darkcore.</remarks>
+        public static string[] MapNames { get; set; } = { "Felucca", "Trammel", "Ilshenar", "Malas", "Tokuno", "Black", "Underdark", "Underdark Mirror", "Darkcore" };
+
+        /// <summary>
+        /// Names upstream UOFiddler gives maps 5 to 7. A profile still holding one was never renamed by its user,
+        /// so it takes the default from <see cref="MapNames"/> instead.
+        /// </summary>
+        public static readonly string[] UpstreamDefaultMapNames = { null, null, null, null, null, "Ter Mur", "Map 6", "Map 7", "Map 8" };
+
+        /// <summary>
+        /// Command typed into the client when an item is double clicked in the Items tab. The item id is appended in decimal.
+        /// </summary>
+        public static string ItemSendCommand { get; set; } = DefaultItemSendCommand;
+
+        /// <summary>
+        /// Command typed into the client on Ctrl + double click in the Items tab. The item id is appended in decimal.
+        /// </summary>
+        public static string ItemSendCommandCtrl { get; set; } = DefaultItemSendCommandCtrl;
+
+        /// <summary>
+        /// Command typed into the client on Alt + double click in the Items tab. The item id is appended in decimal.
+        /// </summary>
+        public static string ItemSendCommandAlt { get; set; } = DefaultItemSendCommandAlt;
+
+        // The Miracle's commands
+        public const string DefaultItemSendCommand = "'add static";
+        public const string DefaultItemSendCommandCtrl = "'m add static";
+        public const string DefaultItemSendCommandAlt = "'tile static";
+
+        /// <summary>
+        /// Race names and paperdoll body gumps used by the Dress tab.
+        /// </summary>
+        public static DressRacePreset DressRacePreset { get; set; } = DressRacePreset.TheMiracle;
 
         /// <summary>
         /// Defines which Plugins to load on startup

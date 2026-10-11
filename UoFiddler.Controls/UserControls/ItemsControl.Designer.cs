@@ -44,7 +44,13 @@ namespace UoFiddler.Controls.UserControls
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ItemsControl));
             splitContainer2 = new SplitContainer();
+            DetailTabControl = new TabControl();
+            DetailArtTabPage = new TabPage();
             DetailPictureBox = new PictureBox();
+            DetailGumpMaleTabPage = new TabPage();
+            DetailGumpMalePictureBox = new PictureBox();
+            DetailGumpFemaleTabPage = new TabPage();
+            DetailGumpFemalePictureBox = new PictureBox();
             DetailPictureBoxContextMenuStrip = new ContextMenuStrip(components);
             changeBackgroundColorToolStripMenuItemDetail = new ToolStripMenuItem();
             DetailTextBox = new RichTextBox();
@@ -108,7 +114,13 @@ namespace UoFiddler.Controls.UserControls
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
+            DetailTabControl.SuspendLayout();
+            DetailArtTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)DetailPictureBox).BeginInit();
+            DetailGumpMaleTabPage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)DetailGumpMalePictureBox).BeginInit();
+            DetailGumpFemaleTabPage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)DetailGumpFemalePictureBox).BeginInit();
             DetailPictureBoxContextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -129,7 +141,7 @@ namespace UoFiddler.Controls.UserControls
             // 
             // splitContainer2.Panel1
             // 
-            splitContainer2.Panel1.Controls.Add(DetailPictureBox);
+            splitContainer2.Panel1.Controls.Add(DetailTabControl);
             // 
             // splitContainer2.Panel2
             // 
@@ -139,16 +151,85 @@ namespace UoFiddler.Controls.UserControls
             splitContainer2.SplitterWidth = 5;
             splitContainer2.TabIndex = 0;
             // 
+            // DetailTabControl
+            //
+            DetailTabControl.Controls.Add(DetailArtTabPage);
+            DetailTabControl.Controls.Add(DetailGumpMaleTabPage);
+            DetailTabControl.Controls.Add(DetailGumpFemaleTabPage);
+            DetailTabControl.Dock = DockStyle.Fill;
+            DetailTabControl.Location = new System.Drawing.Point(0, 0);
+            DetailTabControl.Margin = new Padding(0);
+            DetailTabControl.Name = "DetailTabControl";
+            DetailTabControl.SelectedIndex = 0;
+            DetailTabControl.Size = new System.Drawing.Size(254, 235);
+            DetailTabControl.TabIndex = 0;
+            DetailTabControl.SelectedIndexChanged += DetailTabControl_SelectedIndexChanged;
+            //
+            // DetailArtTabPage
+            //
+            DetailArtTabPage.Controls.Add(DetailPictureBox);
+            DetailArtTabPage.Location = new System.Drawing.Point(4, 24);
+            DetailArtTabPage.Margin = new Padding(0);
+            DetailArtTabPage.Name = "DetailArtTabPage";
+            DetailArtTabPage.Size = new System.Drawing.Size(246, 207);
+            DetailArtTabPage.TabIndex = 0;
+            DetailArtTabPage.Text = "Art";
+            DetailArtTabPage.UseVisualStyleBackColor = true;
+            //
             // DetailPictureBox
-            // 
+            //
             DetailPictureBox.ContextMenuStrip = DetailPictureBoxContextMenuStrip;
             DetailPictureBox.Dock = DockStyle.Fill;
             DetailPictureBox.Location = new System.Drawing.Point(0, 0);
             DetailPictureBox.Margin = new Padding(4, 3, 4, 3);
             DetailPictureBox.Name = "DetailPictureBox";
-            DetailPictureBox.Size = new System.Drawing.Size(254, 235);
+            DetailPictureBox.Size = new System.Drawing.Size(246, 207);
             DetailPictureBox.TabIndex = 0;
             DetailPictureBox.TabStop = false;
+            //
+            // DetailGumpMaleTabPage
+            //
+            DetailGumpMaleTabPage.Controls.Add(DetailGumpMalePictureBox);
+            DetailGumpMaleTabPage.Location = new System.Drawing.Point(4, 24);
+            DetailGumpMaleTabPage.Margin = new Padding(0);
+            DetailGumpMaleTabPage.Name = "DetailGumpMaleTabPage";
+            DetailGumpMaleTabPage.Size = new System.Drawing.Size(246, 207);
+            DetailGumpMaleTabPage.TabIndex = 1;
+            DetailGumpMaleTabPage.Text = "Gump (M)";
+            DetailGumpMaleTabPage.UseVisualStyleBackColor = true;
+            //
+            // DetailGumpMalePictureBox
+            //
+            DetailGumpMalePictureBox.Dock = DockStyle.Fill;
+            DetailGumpMalePictureBox.Location = new System.Drawing.Point(0, 0);
+            DetailGumpMalePictureBox.Margin = new Padding(4, 3, 4, 3);
+            DetailGumpMalePictureBox.Name = "DetailGumpMalePictureBox";
+            DetailGumpMalePictureBox.Size = new System.Drawing.Size(246, 207);
+            DetailGumpMalePictureBox.SizeMode = PictureBoxSizeMode.CenterImage;
+            DetailGumpMalePictureBox.TabIndex = 0;
+            DetailGumpMalePictureBox.TabStop = false;
+            //
+            // DetailGumpFemaleTabPage
+            //
+            DetailGumpFemaleTabPage.Controls.Add(DetailGumpFemalePictureBox);
+            DetailGumpFemaleTabPage.Location = new System.Drawing.Point(4, 24);
+            DetailGumpFemaleTabPage.Margin = new Padding(0);
+            DetailGumpFemaleTabPage.Name = "DetailGumpFemaleTabPage";
+            DetailGumpFemaleTabPage.Size = new System.Drawing.Size(246, 207);
+            DetailGumpFemaleTabPage.TabIndex = 2;
+            DetailGumpFemaleTabPage.Text = "Gump (F)";
+            DetailGumpFemaleTabPage.UseVisualStyleBackColor = true;
+            //
+            // DetailGumpFemalePictureBox
+            //
+            DetailGumpFemalePictureBox.Dock = DockStyle.Fill;
+            DetailGumpFemalePictureBox.Location = new System.Drawing.Point(0, 0);
+            DetailGumpFemalePictureBox.Margin = new Padding(4, 3, 4, 3);
+            DetailGumpFemalePictureBox.Name = "DetailGumpFemalePictureBox";
+            DetailGumpFemalePictureBox.Size = new System.Drawing.Size(246, 207);
+            DetailGumpFemalePictureBox.SizeMode = PictureBoxSizeMode.CenterImage;
+            DetailGumpFemalePictureBox.TabIndex = 0;
+            DetailGumpFemalePictureBox.TabStop = false;
             // 
             // DetailPictureBoxContextMenuStrip
             // 
@@ -630,7 +711,13 @@ namespace UoFiddler.Controls.UserControls
             splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
+            DetailTabControl.ResumeLayout(false);
+            DetailArtTabPage.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)DetailPictureBox).EndInit();
+            DetailGumpMaleTabPage.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)DetailGumpMalePictureBox).EndInit();
+            DetailGumpFemaleTabPage.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)DetailGumpFemalePictureBox).EndInit();
             DetailPictureBoxContextMenuStrip.ResumeLayout(false);
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);
@@ -657,6 +744,12 @@ namespace UoFiddler.Controls.UserControls
         private UoFiddler.Controls.UserControls.CollapsibleSplitter collapsibleSplitter1;
         private ContextMenuStrip TileViewContextMenuStrip;
         private PictureBox DetailPictureBox;
+        private TabControl DetailTabControl;
+        private TabPage DetailArtTabPage;
+        private TabPage DetailGumpMaleTabPage;
+        private TabPage DetailGumpFemaleTabPage;
+        private PictureBox DetailGumpMalePictureBox;
+        private PictureBox DetailGumpFemalePictureBox;
         private ToolStripMenuItem ExportAllToolStripMenuItem;
         private ToolStripMenuItem extractToolStripMenuItem;
         private ToolStripMenuItem findNextFreeSlotToolStripMenuItem;

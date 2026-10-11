@@ -417,8 +417,40 @@ namespace UoFiddler.Controls.UserControls
                 return;
             }
 
-            int id = (int)listView.SelectedItems[0].Tag;
+            if (listView.SelectedItems.Count == 1)
+            {
+                int id = (int)listView.SelectedItems[0].Tag;
+                if (!Sounds.IsValidSound(id, out _, out _))
+                {
+                    return;
+                }
 
+                string fileName = ExtractSound(id);
+
+                MessageBox.Show($"Sound saved to {fileName}", "Saved", MessageBoxButtons.OK, MessageBoxIcon.Information,
+                    MessageBoxDefaultButton.Button1);
+                return;
+            }
+
+            int count = 0;
+            foreach (ListViewItem item in listView.SelectedItems)
+            {
+                int id = (int)item.Tag;
+                if (!Sounds.IsValidSound(id, out _, out _))
+                {
+                    continue;
+                }
+
+                ExtractSound(id);
+                ++count;
+            }
+
+            MessageBox.Show($"Sounds extracted: {count}", "Saved", MessageBoxButtons.OK, MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1);
+        }
+
+        private static string ExtractSound(int id)
+        {
             Sounds.IsValidSound(id, out string name, out _);
 
             string fileName = Path.Combine(Options.OutputPath, $"{name}");
@@ -436,8 +468,7 @@ namespace UoFiddler.Controls.UserControls
                 }
             }
 
-            MessageBox.Show($"Sound saved to {fileName}", "Saved", MessageBoxButtons.OK, MessageBoxIcon.Information,
-                MessageBoxDefaultButton.Button1);
+            return fileName;
         }
 
         private void OnClickSave(object sender, EventArgs e)
@@ -518,18 +549,18 @@ namespace UoFiddler.Controls.UserControls
 
         private void OnClickReplace(object sender, EventArgs e)
         {
-            string file;
+            string[] files;
             if (sender != null)
             {
                 using (OpenFileDialog dialog = new OpenFileDialog())
                 {
-                    dialog.Multiselect = false;
-                    dialog.Title = "Choose wave file";
+                    dialog.Multiselect = true;
+                    dialog.Title = "Choose wave file(s)";
                     dialog.CheckFileExists = true;
                     dialog.Filter = "wav file (*.wav)|*.wav";
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
-                        file = dialog.FileName;
+                        files = dialog.FileNames.OrderBy(f => f, NaturalFileNameComparer.Instance).ToArray();
                     }
                     else
                     {
@@ -539,7 +570,7 @@ namespace UoFiddler.Controls.UserControls
             }
             else
             {
-                file = _wavChosen;
+                files = new[] { _wavChosen };
             }
 
             if (listView.SelectedItems.Count == 0)
@@ -547,20 +578,23 @@ namespace UoFiddler.Controls.UserControls
                 return;
             }
 
-            int id = (int)listView.SelectedItems[0].Tag;
-            string name = Path.GetFileName(file);
+            int startId = (int)listView.SelectedItems[0].Tag;
+
+            if (files.Length > 1)
+            {
+                ImportSounds(startId, files);
+                return;
+            }
+
+            string file = files[0];
 
             if (!File.Exists(file))
             {
                 MessageBox.Show("Invalid Filename", "Add/Replace", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+                return;
             }
 
-            if (name.Length > 32)
-            {
-                name = name.Substring(0, 32);
-            }
-
-            if (Sounds.IsValidSound(id, out _, out _))
+            if (Sounds.IsValidSound(startId, out _, out _))
             {
                 DialogResult result = MessageBox.Show($"Are you sure to replace {listView.SelectedItems[0].Text}?",
                     "Replace", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
@@ -573,13 +607,82 @@ namespace UoFiddler.Controls.UserControls
 
             try
             {
-                Sounds.Add(id, name, file);
+                AddSound(startId, file);
             }
             catch (WaveFormatException waveFormatException)
             {
                 MessageBox.Show("Unexpected WAV format:\n" + waveFormatException.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Imports the given wave files into consecutive slots starting at <paramref name="startId"/>.
+        /// </summary>
+        private void ImportSounds(int startId, string[] files)
+        {
+            if (startId + files.Length > _soundsLength)
+            {
+                MessageBox.Show($"Not enough slots: {files.Length} files starting from 0x{startId + _soundIdOffset:X3} exceed the last sound id.",
+                    "Import", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
                 return;
             }
+
+            int occupied = 0;
+            for (int i = 0; i < files.Length; ++i)
+            {
+                if (Sounds.IsValidSound(startId + i, out _, out _))
+                {
+                    ++occupied;
+                }
+            }
+
+            if (occupied > 0)
+            {
+                DialogResult result = MessageBox.Show(
+                    $"Importing {files.Length} files from 0x{startId + _soundIdOffset:X3} to 0x{startId + files.Length - 1 + _soundIdOffset:X3} will replace {occupied} existing sound(s). Continue?",
+                    "Replace", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+
+                if (result != DialogResult.Yes)
+                {
+                    return;
+                }
+            }
+
+            var errors = new List<string>();
+            int imported = 0;
+            for (int i = 0; i < files.Length; ++i)
+            {
+                try
+                {
+                    AddSound(startId + i, files[i]);
+                    ++imported;
+                }
+                catch (WaveFormatException waveFormatException)
+                {
+                    errors.Add($"{Path.GetFileName(files[i])}: {waveFormatException.Message}");
+                }
+            }
+
+            string message = $"Sounds imported: {imported}";
+            if (errors.Count > 0)
+            {
+                message += $"\n\nSkipped (unexpected WAV format):\n{string.Join("\n", errors)}";
+            }
+
+            MessageBox.Show(message, "Import", MessageBoxButtons.OK,
+                errors.Count > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information, MessageBoxDefaultButton.Button1);
+        }
+
+        private void AddSound(int id, string file)
+        {
+            string name = Path.GetFileName(file);
+
+            if (name.Length > 32)
+            {
+                name = name.Substring(0, 32);
+            }
+
+            Sounds.Add(id, name, file);
 
             ListViewItem item = new ListViewItem($"0x{id + _soundIdOffset:X3} {name}") { Tag = id };
 

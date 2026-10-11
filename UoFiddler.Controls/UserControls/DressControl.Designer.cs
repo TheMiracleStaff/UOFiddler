@@ -54,6 +54,8 @@ namespace UoFiddler.Controls.UserControls
             LayerSort = new System.Windows.Forms.CheckBox();
             checkBoxElve = new System.Windows.Forms.RadioButton();
             checkBoxfemale = new System.Windows.Forms.CheckBox();
+            labelRacePreset = new System.Windows.Forms.Label();
+            comboBoxRacePreset = new System.Windows.Forms.ComboBox();
             buttonDress = new System.Windows.Forms.Button();
             pictureBoxDress = new System.Windows.Forms.PictureBox();
             splitContainer4 = new System.Windows.Forms.SplitContainer();
@@ -245,6 +247,8 @@ namespace UoFiddler.Controls.UserControls
             splitContainer3.Panel1.Controls.Add(LayerSort);
             splitContainer3.Panel1.Controls.Add(checkBoxElve);
             splitContainer3.Panel1.Controls.Add(checkBoxfemale);
+            splitContainer3.Panel1.Controls.Add(labelRacePreset);
+            splitContainer3.Panel1.Controls.Add(comboBoxRacePreset);
             splitContainer3.Panel1.Controls.Add(buttonDress);
             // 
             // splitContainer3.Panel2
@@ -328,6 +332,27 @@ namespace UoFiddler.Controls.UserControls
             checkBoxfemale.Text = "Female";
             checkBoxfemale.UseVisualStyleBackColor = true;
             checkBoxfemale.CheckedChanged += OnChangeFemale;
+            //
+            // labelRacePreset
+            //
+            labelRacePreset.AutoSize = true;
+            labelRacePreset.Location = new System.Drawing.Point(108, 40);
+            labelRacePreset.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelRacePreset.Name = "labelRacePreset";
+            labelRacePreset.Size = new System.Drawing.Size(53, 15);
+            labelRacePreset.TabIndex = 6;
+            labelRacePreset.Text = "Body set";
+            //
+            // comboBoxRacePreset
+            //
+            comboBoxRacePreset.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            comboBoxRacePreset.FormattingEnabled = true;
+            comboBoxRacePreset.Location = new System.Drawing.Point(108, 60);
+            comboBoxRacePreset.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            comboBoxRacePreset.Name = "comboBoxRacePreset";
+            comboBoxRacePreset.Size = new System.Drawing.Size(115, 23);
+            comboBoxRacePreset.TabIndex = 7;
+            comboBoxRacePreset.SelectedIndexChanged += OnChangeRacePreset;
             // 
             // buttonDress
             // 
@@ -710,6 +735,8 @@ namespace UoFiddler.Controls.UserControls
         private System.Windows.Forms.Button buttonDress;
         private System.Windows.Forms.RadioButton checkBoxElve;
         private System.Windows.Forms.CheckBox checkBoxfemale;
+        private System.Windows.Forms.Label labelRacePreset;
+        private System.Windows.Forms.ComboBox comboBoxRacePreset;
         private System.Windows.Forms.RadioButton checkBoxGargoyle;
         private System.Windows.Forms.RadioButton checkBoxHuman;
         private System.Windows.Forms.CheckedListBox checkedListBoxWear;

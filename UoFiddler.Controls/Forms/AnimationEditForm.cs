@@ -10,6 +10,7 @@
  ***************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -1820,6 +1821,106 @@ namespace UoFiddler.Controls.Forms
             }
         }
         //End of Soulblighter Modification
+
+        /// <summary>
+        /// Sets the center of every frame of the current action, in all five directions, to the X/Y values.
+        /// </summary>
+        private void SameCenterAllDirectionsButton_Click(object sender, EventArgs e)
+        {
+            // TODO: there is no undo for center changes
+            if (_fileType == 0)
+            {
+                return;
+            }
+
+            int x = (int)CenterXNumericUpDown.Value;
+            int y = (int)CenterYNumericUpDown.Value;
+
+            if (ChangeFrameCenters(new[] { _currentAction }, _ => new Point(x, y)) > 0)
+            {
+                AnimationPictureBox.Invalidate();
+            }
+        }
+
+        /// <summary>
+        /// Moves the center of every frame of every action and direction of the current body by the offset.
+        /// </summary>
+        private void OffsetBodyCenterButton_Click(object sender, EventArgs e)
+        {
+            // TODO: there is no undo for center changes
+            if (_fileType == 0)
+            {
+                return;
+            }
+
+            int dx = (int)OffsetCenterXNumericUpDown.Value;
+            int dy = (int)OffsetCenterYNumericUpDown.Value;
+            if (dx == 0 && dy == 0)
+            {
+                return;
+            }
+
+            int actionCount = Animations.GetAnimLength(_currentBody, _fileType);
+
+            DialogResult result = MessageBox.Show(
+                $"Move the center of all frames of body {_currentBody} ({actionCount} actions, all directions) by X {dx:+0;-0;0}, Y {dy:+0;-0;0}?\nThis can't be undone.",
+                "Offset Body Center", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+            if (result != DialogResult.Yes)
+            {
+                return;
+            }
+
+            if (ChangeFrameCenters(Enumerable.Range(0, actionCount), c => new Point(c.X + dx, c.Y + dy)) == 0)
+            {
+                return;
+            }
+
+            // Show the moved center of the current frame without re-applying it
+            AnimIdx current = AnimationEdit.GetAnimation(_fileType, _currentBody, _currentAction, _currentDir);
+            if (current?.Frames != null && FramesTrackBar.Value < current.Frames.Count)
+            {
+                Point center = current.Frames[FramesTrackBar.Value].Center;
+                CenterXNumericUpDown.Value = Math.Clamp(center.X, (int)CenterXNumericUpDown.Minimum, (int)CenterXNumericUpDown.Maximum);
+                CenterYNumericUpDown.Value = Math.Clamp(center.Y, (int)CenterYNumericUpDown.Minimum, (int)CenterYNumericUpDown.Maximum);
+            }
+
+            AnimationPictureBox.Invalidate();
+        }
+
+        /// <summary>
+        /// Changes the center of every frame of the given actions of the current body, in all five directions.
+        /// </summary>
+        /// <returns>Number of frames changed.</returns>
+        private int ChangeFrameCenters(IEnumerable<int> actions, Func<Point, Point> newCenter)
+        {
+            int changed = 0;
+
+            foreach (int action in actions)
+            {
+                for (int dir = 0; dir < 5; ++dir)
+                {
+                    AnimIdx edit = AnimationEdit.GetAnimation(_fileType, _currentBody, action, dir);
+                    if (edit?.Frames == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (FrameEdit frame in edit.Frames)
+                    {
+                        Point center = newCenter(frame.Center);
+                        frame.ChangeCenter(center.X, center.Y);
+                        ++changed;
+                    }
+                }
+            }
+
+            if (changed > 0)
+            {
+                Options.ChangedUltimaClass["Animations"] = true;
+            }
+
+            return changed;
+        }
 
         //My Soulblighter Modification
         private void FromGifToolStripMenuItem_Click(object sender, EventArgs e)

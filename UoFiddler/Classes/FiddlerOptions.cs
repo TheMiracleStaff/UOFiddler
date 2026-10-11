@@ -195,12 +195,26 @@ namespace UoFiddler.Classes
             comment = dom.CreateComment("Defines the map names");
             sr.AppendChild(comment);
             elem = dom.CreateElement("MapNames");
-            elem.SetAttribute("map0", Options.MapNames[0]);
-            elem.SetAttribute("map1", Options.MapNames[1]);
-            elem.SetAttribute("map2", Options.MapNames[2]);
-            elem.SetAttribute("map3", Options.MapNames[3]);
-            elem.SetAttribute("map4", Options.MapNames[4]);
-            elem.SetAttribute("map5", Options.MapNames[5]);
+            for (int i = 0; i < Options.MapNames.Length; i++)
+            {
+                elem.SetAttribute($"map{i}", Options.MapNames[i]);
+            }
+            sr.AppendChild(elem);
+
+            comment = dom.CreateComment("Race names and paperdoll body gumps of the Dress tab (default, themiracle)");
+            sr.AppendChild(comment);
+            elem = dom.CreateElement("DressRaces");
+            elem.SetAttribute("preset", Options.DressRacePreset.Key);
+            sr.AppendChild(elem);
+
+            comment = dom.CreateComment("Commands typed into the client on double click in the Items tab, plain, with Ctrl and with Alt");
+            sr.AppendChild(comment);
+            comment = dom.CreateComment("The item id is appended in decimal, e.g. 'add static 3701");
+            sr.AppendChild(comment);
+            elem = dom.CreateElement("ItemSendCommands");
+            elem.SetAttribute("cmd", Options.ItemSendCommand);
+            elem.SetAttribute("ctrl", Options.ItemSendCommandCtrl);
+            elem.SetAttribute("alt", Options.ItemSendCommandAlt);
             sr.AppendChild(elem);
 
             comment = dom.CreateComment("Extern Tools settings");
@@ -401,12 +415,42 @@ namespace UoFiddler.Classes
             elem = (XmlElement)xOptions.SelectSingleNode("MapNames");
             if (elem != null)
             {
-                Options.MapNames[0] = elem.GetAttribute("map0");
-                Options.MapNames[1] = elem.GetAttribute("map1");
-                Options.MapNames[2] = elem.GetAttribute("map2");
-                Options.MapNames[3] = elem.GetAttribute("map3");
-                Options.MapNames[4] = elem.GetAttribute("map4");
-                Options.MapNames[5] = elem.GetAttribute("map5");
+                // Keep the defaults for names a profile lacks (written before the extra maps) or still holds
+                // as upstream shipped them (never renamed by the user)
+                for (int i = 0; i < Options.MapNames.Length; i++)
+                {
+                    string name = elem.GetAttribute($"map{i}");
+                    if (elem.HasAttribute($"map{i}") && name != Options.UpstreamDefaultMapNames[i])
+                    {
+                        Options.MapNames[i] = name;
+                    }
+                }
+            }
+
+            // No setting yet keeps the default (The Miracle)
+            elem = (XmlElement)xOptions.SelectSingleNode("DressRaces");
+            if (elem != null)
+            {
+                Options.DressRacePreset = DressRacePreset.Find(elem.GetAttribute("preset"));
+            }
+
+            elem = (XmlElement)xOptions.SelectSingleNode("ItemSendCommands");
+            if (elem != null)
+            {
+                if (elem.HasAttribute("cmd"))
+                {
+                    Options.ItemSendCommand = elem.GetAttribute("cmd");
+                }
+
+                if (elem.HasAttribute("ctrl"))
+                {
+                    Options.ItemSendCommandCtrl = elem.GetAttribute("ctrl");
+                }
+
+                if (elem.HasAttribute("alt"))
+                {
+                    Options.ItemSendCommandAlt = elem.GetAttribute("alt");
+                }
             }
 
             ExternTools = new List<ExternTool>();

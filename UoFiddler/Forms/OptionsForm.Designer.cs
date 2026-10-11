@@ -45,6 +45,13 @@ namespace UoFiddler.Forms
             checkBoxItemClip = new System.Windows.Forms.CheckBox();
             label1 = new System.Windows.Forms.Label();
             numericUpDownItemSizeWidth = new System.Windows.Forms.NumericUpDown();
+            labelItemSend = new System.Windows.Forms.Label();
+            labelItemSendCmd = new System.Windows.Forms.Label();
+            itemSendCmdText = new System.Windows.Forms.TextBox();
+            labelItemSendCmdCtrl = new System.Windows.Forms.Label();
+            itemSendCmdCtrlText = new System.Windows.Forms.TextBox();
+            labelItemSendCmdAlt = new System.Windows.Forms.Label();
+            itemSendCmdAltText = new System.Windows.Forms.TextBox();
             checkBoxCacheData = new System.Windows.Forms.CheckBox();
             groupBox2 = new System.Windows.Forms.GroupBox();
             checkBoxPolSoundIdOffset = new System.Windows.Forms.CheckBox();
@@ -67,6 +74,12 @@ namespace UoFiddler.Forms
             checkBoxExportFilenameDecPad = new System.Windows.Forms.CheckBox();
             groupBox3 = new System.Windows.Forms.GroupBox();
             map5Nametext = new System.Windows.Forms.TextBox();
+            labelMap6 = new System.Windows.Forms.Label();
+            map6Nametext = new System.Windows.Forms.TextBox();
+            labelMap7 = new System.Windows.Forms.Label();
+            map7Nametext = new System.Windows.Forms.TextBox();
+            labelMap8 = new System.Windows.Forms.Label();
+            map8Nametext = new System.Windows.Forms.TextBox();
             argstext = new System.Windows.Forms.TextBox();
             cmdtext = new System.Windows.Forms.TextBox();
             map4Nametext = new System.Windows.Forms.TextBox();
@@ -105,11 +118,18 @@ namespace UoFiddler.Forms
             groupBox1.Controls.Add(checkBoxItemClip);
             groupBox1.Controls.Add(label1);
             groupBox1.Controls.Add(numericUpDownItemSizeWidth);
+            groupBox1.Controls.Add(labelItemSend);
+            groupBox1.Controls.Add(labelItemSendCmd);
+            groupBox1.Controls.Add(itemSendCmdText);
+            groupBox1.Controls.Add(labelItemSendCmdCtrl);
+            groupBox1.Controls.Add(itemSendCmdCtrlText);
+            groupBox1.Controls.Add(labelItemSendCmdAlt);
+            groupBox1.Controls.Add(itemSendCmdAltText);
             groupBox1.Location = new System.Drawing.Point(16, 164);
             groupBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            groupBox1.Size = new System.Drawing.Size(258, 118);
+            groupBox1.Size = new System.Drawing.Size(258, 204);
             groupBox1.TabIndex = 1;
             groupBox1.TabStop = false;
             groupBox1.Text = "Item Tab";
@@ -160,6 +180,74 @@ namespace UoFiddler.Forms
             numericUpDownItemSizeWidth.TabIndex = 0;
             toolTip1.SetToolTip(numericUpDownItemSizeWidth, "Width");
             numericUpDownItemSizeWidth.Value = new decimal(new int[] { 96, 0, 0, 0 });
+            //
+            // labelItemSend
+            //
+            labelItemSend.AutoSize = true;
+            labelItemSend.Location = new System.Drawing.Point(7, 84);
+            labelItemSend.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelItemSend.Name = "labelItemSend";
+            labelItemSend.Size = new System.Drawing.Size(160, 15);
+            labelItemSend.TabIndex = 4;
+            labelItemSend.Text = "Double click sends to client:";
+            toolTip1.SetToolTip(labelItemSend, "Commands typed into the client when \"Double click to send to client\" is on in the Items tab.\r\nThe item id is added at the end in decimal (e.g. 'add static 3701), then Enter is pressed.");
+            //
+            // labelItemSendCmd
+            //
+            labelItemSendCmd.AutoSize = true;
+            labelItemSendCmd.Location = new System.Drawing.Point(7, 109);
+            labelItemSendCmd.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelItemSendCmd.Name = "labelItemSendCmd";
+            labelItemSendCmd.Size = new System.Drawing.Size(34, 15);
+            labelItemSendCmd.TabIndex = 5;
+            labelItemSendCmd.Text = "Click";
+            //
+            // itemSendCmdText
+            //
+            itemSendCmdText.Location = new System.Drawing.Point(80, 105);
+            itemSendCmdText.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            itemSendCmdText.Name = "itemSendCmdText";
+            itemSendCmdText.Size = new System.Drawing.Size(165, 23);
+            itemSendCmdText.TabIndex = 6;
+            toolTip1.SetToolTip(itemSendCmdText, "Sent on double click, followed by the item id");
+            //
+            // labelItemSendCmdCtrl
+            //
+            labelItemSendCmdCtrl.AutoSize = true;
+            labelItemSendCmdCtrl.Location = new System.Drawing.Point(7, 139);
+            labelItemSendCmdCtrl.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelItemSendCmdCtrl.Name = "labelItemSendCmdCtrl";
+            labelItemSendCmdCtrl.Size = new System.Drawing.Size(62, 15);
+            labelItemSendCmdCtrl.TabIndex = 7;
+            labelItemSendCmdCtrl.Text = "Ctrl+Click";
+            //
+            // itemSendCmdCtrlText
+            //
+            itemSendCmdCtrlText.Location = new System.Drawing.Point(80, 135);
+            itemSendCmdCtrlText.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            itemSendCmdCtrlText.Name = "itemSendCmdCtrlText";
+            itemSendCmdCtrlText.Size = new System.Drawing.Size(165, 23);
+            itemSendCmdCtrlText.TabIndex = 8;
+            toolTip1.SetToolTip(itemSendCmdCtrlText, "Sent on Ctrl + double click, followed by the item id");
+            //
+            // labelItemSendCmdAlt
+            //
+            labelItemSendCmdAlt.AutoSize = true;
+            labelItemSendCmdAlt.Location = new System.Drawing.Point(7, 169);
+            labelItemSendCmdAlt.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelItemSendCmdAlt.Name = "labelItemSendCmdAlt";
+            labelItemSendCmdAlt.Size = new System.Drawing.Size(58, 15);
+            labelItemSendCmdAlt.TabIndex = 9;
+            labelItemSendCmdAlt.Text = "Alt+Click";
+            //
+            // itemSendCmdAltText
+            //
+            itemSendCmdAltText.Location = new System.Drawing.Point(80, 165);
+            itemSendCmdAltText.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            itemSendCmdAltText.Name = "itemSendCmdAltText";
+            itemSendCmdAltText.Size = new System.Drawing.Size(165, 23);
+            itemSendCmdAltText.TabIndex = 10;
+            toolTip1.SetToolTip(itemSendCmdAltText, "Sent on Alt + double click, followed by the item id");
             // 
             // checkBoxCacheData
             // 
@@ -226,7 +314,7 @@ namespace UoFiddler.Forms
             // 
             // buttonApply
             // 
-            buttonApply.Location = new System.Drawing.Point(318, 586);
+            buttonApply.Location = new System.Drawing.Point(318, 676);
             buttonApply.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             buttonApply.Name = "buttonApply";
             buttonApply.Size = new System.Drawing.Size(88, 27);
@@ -293,7 +381,7 @@ namespace UoFiddler.Forms
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new System.Drawing.Point(7, 211);
+            label7.Location = new System.Drawing.Point(7, 301);
             label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label7.Name = "label7";
             label7.Size = new System.Drawing.Size(33, 15);
@@ -304,7 +392,7 @@ namespace UoFiddler.Forms
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new System.Drawing.Point(7, 241);
+            label8.Location = new System.Drawing.Point(7, 331);
             label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label8.Name = "label8";
             label8.Size = new System.Drawing.Size(31, 15);
@@ -402,11 +490,17 @@ namespace UoFiddler.Forms
             groupBox3.Controls.Add(map1Nametext);
             groupBox3.Controls.Add(label2);
             groupBox3.Controls.Add(map0Nametext);
+            groupBox3.Controls.Add(labelMap6);
+            groupBox3.Controls.Add(map6Nametext);
+            groupBox3.Controls.Add(labelMap7);
+            groupBox3.Controls.Add(map7Nametext);
+            groupBox3.Controls.Add(labelMap8);
+            groupBox3.Controls.Add(map8Nametext);
             groupBox3.Location = new System.Drawing.Point(282, 6);
             groupBox3.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             groupBox3.Name = "groupBox3";
             groupBox3.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            groupBox3.Size = new System.Drawing.Size(220, 276);
+            groupBox3.Size = new System.Drawing.Size(220, 366);
             groupBox3.TabIndex = 5;
             groupBox3.TabStop = false;
             groupBox3.Text = "Map";
@@ -418,10 +512,64 @@ namespace UoFiddler.Forms
             map5Nametext.Name = "map5Nametext";
             map5Nametext.Size = new System.Drawing.Size(116, 23);
             map5Nametext.TabIndex = 14;
+            //
+            // labelMap6
+            //
+            labelMap6.AutoSize = true;
+            labelMap6.Location = new System.Drawing.Point(7, 202);
+            labelMap6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelMap6.Name = "labelMap6";
+            labelMap6.Size = new System.Drawing.Size(72, 15);
+            labelMap6.TabIndex = 15;
+            labelMap6.Text = "map6 Name";
+            //
+            // map6Nametext
+            //
+            map6Nametext.Location = new System.Drawing.Point(89, 198);
+            map6Nametext.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            map6Nametext.Name = "map6Nametext";
+            map6Nametext.Size = new System.Drawing.Size(116, 23);
+            map6Nametext.TabIndex = 16;
+            //
+            // labelMap7
+            //
+            labelMap7.AutoSize = true;
+            labelMap7.Location = new System.Drawing.Point(7, 232);
+            labelMap7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelMap7.Name = "labelMap7";
+            labelMap7.Size = new System.Drawing.Size(72, 15);
+            labelMap7.TabIndex = 17;
+            labelMap7.Text = "map7 Name";
+            //
+            // map7Nametext
+            //
+            map7Nametext.Location = new System.Drawing.Point(89, 228);
+            map7Nametext.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            map7Nametext.Name = "map7Nametext";
+            map7Nametext.Size = new System.Drawing.Size(116, 23);
+            map7Nametext.TabIndex = 18;
+            //
+            // labelMap8
+            //
+            labelMap8.AutoSize = true;
+            labelMap8.Location = new System.Drawing.Point(7, 262);
+            labelMap8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelMap8.Name = "labelMap8";
+            labelMap8.Size = new System.Drawing.Size(72, 15);
+            labelMap8.TabIndex = 19;
+            labelMap8.Text = "map8 Name";
+            //
+            // map8Nametext
+            //
+            map8Nametext.Location = new System.Drawing.Point(89, 258);
+            map8Nametext.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            map8Nametext.Name = "map8Nametext";
+            map8Nametext.Size = new System.Drawing.Size(116, 23);
+            map8Nametext.TabIndex = 20;
             // 
             // argstext
             // 
-            argstext.Location = new System.Drawing.Point(89, 238);
+            argstext.Location = new System.Drawing.Point(89, 328);
             argstext.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             argstext.Name = "argstext";
             argstext.Size = new System.Drawing.Size(116, 23);
@@ -429,7 +577,7 @@ namespace UoFiddler.Forms
             // 
             // cmdtext
             // 
-            cmdtext.Location = new System.Drawing.Point(89, 208);
+            cmdtext.Location = new System.Drawing.Point(89, 298);
             cmdtext.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cmdtext.Name = "cmdtext";
             cmdtext.Size = new System.Drawing.Size(116, 23);
@@ -482,7 +630,7 @@ namespace UoFiddler.Forms
             groupBox4.Controls.Add(label10);
             groupBox4.Controls.Add(comboBoxSaveFormat);
             groupBox4.Controls.Add(labelSaveFormat);
-            groupBox4.Location = new System.Drawing.Point(16, 419);
+            groupBox4.Location = new System.Drawing.Point(16, 509);
             groupBox4.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             groupBox4.Name = "groupBox4";
             groupBox4.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -550,7 +698,7 @@ namespace UoFiddler.Forms
             ColorsGroupBox.Controls.Add(TileFocusColorComboBox);
             ColorsGroupBox.Controls.Add(PreviewBackgroundColorLabel);
             ColorsGroupBox.Controls.Add(PreviewBackgroundColorButton);
-            ColorsGroupBox.Location = new System.Drawing.Point(16, 288);
+            ColorsGroupBox.Location = new System.Drawing.Point(16, 378);
             ColorsGroupBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             ColorsGroupBox.Name = "ColorsGroupBox";
             ColorsGroupBox.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -622,7 +770,7 @@ namespace UoFiddler.Forms
             // 
             // buttonClose
             // 
-            buttonClose.Location = new System.Drawing.Point(414, 586);
+            buttonClose.Location = new System.Drawing.Point(414, 676);
             buttonClose.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             buttonClose.Name = "buttonClose";
             buttonClose.Size = new System.Drawing.Size(88, 27);
@@ -636,7 +784,7 @@ namespace UoFiddler.Forms
             ExportFilenamesGroupBox.Controls.Add(radioExportFilenameHex);
             ExportFilenamesGroupBox.Controls.Add(radioExportFilenameDec);
             ExportFilenamesGroupBox.Controls.Add(checkBoxExportFilenameDecPad);
-            ExportFilenamesGroupBox.Location = new System.Drawing.Point(16, 511);
+            ExportFilenamesGroupBox.Location = new System.Drawing.Point(16, 601);
             ExportFilenamesGroupBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             ExportFilenamesGroupBox.Name = "ExportFilenamesGroupBox";
             ExportFilenamesGroupBox.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -649,7 +797,7 @@ namespace UoFiddler.Forms
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(518, 625);
+            ClientSize = new System.Drawing.Size(518, 715);
             Controls.Add(buttonClose);
             Controls.Add(ExportFilenamesGroupBox);
             Controls.Add(ColorsGroupBox);
@@ -714,8 +862,21 @@ namespace UoFiddler.Forms
         private System.Windows.Forms.TextBox map3Nametext;
         private System.Windows.Forms.TextBox map4Nametext;
         private System.Windows.Forms.TextBox map5Nametext;
+        private System.Windows.Forms.Label labelMap6;
+        private System.Windows.Forms.TextBox map6Nametext;
+        private System.Windows.Forms.Label labelMap7;
+        private System.Windows.Forms.TextBox map7Nametext;
+        private System.Windows.Forms.Label labelMap8;
+        private System.Windows.Forms.TextBox map8Nametext;
         private System.Windows.Forms.NumericUpDown numericUpDownItemSizeHeight;
         private System.Windows.Forms.NumericUpDown numericUpDownItemSizeWidth;
+        private System.Windows.Forms.Label labelItemSend;
+        private System.Windows.Forms.Label labelItemSendCmd;
+        private System.Windows.Forms.TextBox itemSendCmdText;
+        private System.Windows.Forms.Label labelItemSendCmdCtrl;
+        private System.Windows.Forms.TextBox itemSendCmdCtrlText;
+        private System.Windows.Forms.Label labelItemSendCmdAlt;
+        private System.Windows.Forms.TextBox itemSendCmdAltText;
         private System.Windows.Forms.TextBox textBoxOutputPath;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.GroupBox ColorsGroupBox;

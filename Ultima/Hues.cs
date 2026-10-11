@@ -406,7 +406,12 @@ namespace Ultima
             }
         }
 
-        public void Import(string fileName)
+        /// <summary>
+        /// Imports hue data from a text file written by <see cref="Export"/>.
+        /// </summary>
+        /// <param name="fileName">File to import.</param>
+        /// <param name="resetNames">When true the stored name is ignored and the hue is renamed to "Hue".</param>
+        public void Import(string fileName, bool resetNames = false)
         {
             if (!File.Exists(fileName))
             {
@@ -431,7 +436,7 @@ namespace Ultima
                         switch (i)
                         {
                             case -3:
-                                Name = line;
+                                Name = resetNames ? "Hue" : line;
                                 break;
                             case -2:
                                 TableStart = ushort.Parse(line);

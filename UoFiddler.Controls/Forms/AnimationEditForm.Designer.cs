@@ -133,6 +133,13 @@
             SameCenterButton = new System.Windows.Forms.Button();
             CenterXNumericUpDown = new System.Windows.Forms.NumericUpDown();
             CenterYNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            SameCenterAllDirectionsButton = new System.Windows.Forms.Button();
+            OffsetCenterLabel = new System.Windows.Forms.Label();
+            OffsetCenterXLabel = new System.Windows.Forms.Label();
+            OffsetCenterXNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            OffsetCenterYLabel = new System.Windows.Forms.Label();
+            OffsetCenterYNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            OffsetBodyCenterButton = new System.Windows.Forms.Button();
             ReferencialPointGroupBox = new System.Windows.Forms.GroupBox();
             ToolStripLockButton = new System.Windows.Forms.CheckBox();
             RefYLabel = new System.Windows.Forms.Label();
@@ -196,6 +203,8 @@
             LocationCenterGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)CenterXNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)CenterYNumericUpDown).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)OffsetCenterXNumericUpDown).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)OffsetCenterYNumericUpDown).BeginInit();
             ReferencialPointGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)RefXNumericUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)RefYNumericUpDown).BeginInit();
@@ -1040,7 +1049,7 @@
             SecondAnimGroupBox.Controls.Add(SecondAnimBoxCheckBox);
             SecondAnimGroupBox.Controls.Add(SecondAnimWarningLabel);
             SecondAnimGroupBox.Dock = System.Windows.Forms.DockStyle.Top;
-            SecondAnimGroupBox.Location = new System.Drawing.Point(0, 437);
+            SecondAnimGroupBox.Location = new System.Drawing.Point(0, 517);
             SecondAnimGroupBox.Name = "SecondAnimGroupBox";
             SecondAnimGroupBox.Size = new System.Drawing.Size(190, 240);
             SecondAnimGroupBox.TabIndex = 26;
@@ -1161,7 +1170,7 @@
             // 
             FramesGroupBox.Controls.Add(FramesTrackBar);
             FramesGroupBox.Dock = System.Windows.Forms.DockStyle.Top;
-            FramesGroupBox.Location = new System.Drawing.Point(0, 380);
+            FramesGroupBox.Location = new System.Drawing.Point(0, 460);
             FramesGroupBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             FramesGroupBox.Name = "FramesGroupBox";
             FramesGroupBox.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -1187,7 +1196,7 @@
             SpeedGroupBox.Controls.Add(PlayButton);
             SpeedGroupBox.Controls.Add(AnimationSpeedTrackBar);
             SpeedGroupBox.Dock = System.Windows.Forms.DockStyle.Top;
-            SpeedGroupBox.Location = new System.Drawing.Point(0, 310);
+            SpeedGroupBox.Location = new System.Drawing.Point(0, 390);
             SpeedGroupBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             SpeedGroupBox.Name = "SpeedGroupBox";
             SpeedGroupBox.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -1227,12 +1236,19 @@
             LocationCenterGroupBox.Controls.Add(SameCenterButton);
             LocationCenterGroupBox.Controls.Add(CenterXNumericUpDown);
             LocationCenterGroupBox.Controls.Add(CenterYNumericUpDown);
+            LocationCenterGroupBox.Controls.Add(SameCenterAllDirectionsButton);
+            LocationCenterGroupBox.Controls.Add(OffsetCenterLabel);
+            LocationCenterGroupBox.Controls.Add(OffsetCenterXLabel);
+            LocationCenterGroupBox.Controls.Add(OffsetCenterXNumericUpDown);
+            LocationCenterGroupBox.Controls.Add(OffsetCenterYLabel);
+            LocationCenterGroupBox.Controls.Add(OffsetCenterYNumericUpDown);
+            LocationCenterGroupBox.Controls.Add(OffsetBodyCenterButton);
             LocationCenterGroupBox.Dock = System.Windows.Forms.DockStyle.Top;
             LocationCenterGroupBox.Location = new System.Drawing.Point(0, 221);
             LocationCenterGroupBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             LocationCenterGroupBox.Name = "LocationCenterGroupBox";
             LocationCenterGroupBox.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            LocationCenterGroupBox.Size = new System.Drawing.Size(190, 89);
+            LocationCenterGroupBox.Size = new System.Drawing.Size(190, 169);
             LocationCenterGroupBox.TabIndex = 21;
             LocationCenterGroupBox.TabStop = false;
             LocationCenterGroupBox.Text = "Location Center";
@@ -1259,15 +1275,86 @@
             // 
             // SameCenterButton
             // 
-            SameCenterButton.AutoSize = true;
-            SameCenterButton.Location = new System.Drawing.Point(63, 51);
+            SameCenterButton.Location = new System.Drawing.Point(9, 51);
             SameCenterButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             SameCenterButton.Name = "SameCenterButton";
-            SameCenterButton.Size = new System.Drawing.Size(98, 27);
+            SameCenterButton.Size = new System.Drawing.Size(78, 27);
             SameCenterButton.TabIndex = 16;
             SameCenterButton.Text = "Same Center";
             SameCenterButton.UseVisualStyleBackColor = true;
             SameCenterButton.Click += SameCenterButton_Click;
+            //
+            // SameCenterAllDirectionsButton
+            //
+            SameCenterAllDirectionsButton.Location = new System.Drawing.Point(91, 51);
+            SameCenterAllDirectionsButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            SameCenterAllDirectionsButton.Name = "SameCenterAllDirectionsButton";
+            SameCenterAllDirectionsButton.Size = new System.Drawing.Size(78, 27);
+            SameCenterAllDirectionsButton.TabIndex = 19;
+            SameCenterAllDirectionsButton.Text = "All Dirs";
+            SameCenterAllDirectionsButton.UseVisualStyleBackColor = true;
+            SameCenterAllDirectionsButton.Click += SameCenterAllDirectionsButton_Click;
+            //
+            // OffsetCenterLabel
+            //
+            OffsetCenterLabel.AutoSize = true;
+            OffsetCenterLabel.Location = new System.Drawing.Point(9, 85);
+            OffsetCenterLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            OffsetCenterLabel.Name = "OffsetCenterLabel";
+            OffsetCenterLabel.Size = new System.Drawing.Size(120, 15);
+            OffsetCenterLabel.TabIndex = 20;
+            OffsetCenterLabel.Text = "Offset whole body";
+            //
+            // OffsetCenterXLabel
+            //
+            OffsetCenterXLabel.AutoSize = true;
+            OffsetCenterXLabel.Location = new System.Drawing.Point(9, 108);
+            OffsetCenterXLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            OffsetCenterXLabel.Name = "OffsetCenterXLabel";
+            OffsetCenterXLabel.Size = new System.Drawing.Size(14, 15);
+            OffsetCenterXLabel.TabIndex = 21;
+            OffsetCenterXLabel.Text = "X";
+            //
+            // OffsetCenterXNumericUpDown
+            //
+            OffsetCenterXNumericUpDown.Location = new System.Drawing.Point(33, 106);
+            OffsetCenterXNumericUpDown.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            OffsetCenterXNumericUpDown.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            OffsetCenterXNumericUpDown.Minimum = new decimal(new int[] { 1000, 0, 0, int.MinValue });
+            OffsetCenterXNumericUpDown.Name = "OffsetCenterXNumericUpDown";
+            OffsetCenterXNumericUpDown.Size = new System.Drawing.Size(50, 23);
+            OffsetCenterXNumericUpDown.TabIndex = 22;
+            //
+            // OffsetCenterYLabel
+            //
+            OffsetCenterYLabel.AutoSize = true;
+            OffsetCenterYLabel.Location = new System.Drawing.Point(88, 108);
+            OffsetCenterYLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            OffsetCenterYLabel.Name = "OffsetCenterYLabel";
+            OffsetCenterYLabel.Size = new System.Drawing.Size(14, 15);
+            OffsetCenterYLabel.TabIndex = 23;
+            OffsetCenterYLabel.Text = "Y";
+            //
+            // OffsetCenterYNumericUpDown
+            //
+            OffsetCenterYNumericUpDown.Location = new System.Drawing.Point(111, 106);
+            OffsetCenterYNumericUpDown.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            OffsetCenterYNumericUpDown.Maximum = new decimal(new int[] { 1000, 0, 0, 0 });
+            OffsetCenterYNumericUpDown.Minimum = new decimal(new int[] { 1000, 0, 0, int.MinValue });
+            OffsetCenterYNumericUpDown.Name = "OffsetCenterYNumericUpDown";
+            OffsetCenterYNumericUpDown.Size = new System.Drawing.Size(50, 23);
+            OffsetCenterYNumericUpDown.TabIndex = 24;
+            //
+            // OffsetBodyCenterButton
+            //
+            OffsetBodyCenterButton.Location = new System.Drawing.Point(9, 135);
+            OffsetBodyCenterButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            OffsetBodyCenterButton.Name = "OffsetBodyCenterButton";
+            OffsetBodyCenterButton.Size = new System.Drawing.Size(160, 27);
+            OffsetBodyCenterButton.TabIndex = 25;
+            OffsetBodyCenterButton.Text = "Apply Offset";
+            OffsetBodyCenterButton.UseVisualStyleBackColor = true;
+            OffsetBodyCenterButton.Click += OffsetBodyCenterButton_Click;
             // 
             // CenterXNumericUpDown
             // 
@@ -1641,6 +1728,8 @@
             LocationCenterGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)CenterXNumericUpDown).EndInit();
             ((System.ComponentModel.ISupportInitialize)CenterYNumericUpDown).EndInit();
+            ((System.ComponentModel.ISupportInitialize)OffsetCenterXNumericUpDown).EndInit();
+            ((System.ComponentModel.ISupportInitialize)OffsetCenterYNumericUpDown).EndInit();
             ReferencialPointGroupBox.ResumeLayout(false);
             ReferencialPointGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)RefXNumericUpDown).EndInit();
@@ -1749,6 +1838,13 @@
         private System.Windows.Forms.Label CenterYLabel;
         private System.Windows.Forms.Label CenterXLabel;
         private System.Windows.Forms.Button SameCenterButton;
+        private System.Windows.Forms.Button SameCenterAllDirectionsButton;
+        private System.Windows.Forms.Label OffsetCenterLabel;
+        private System.Windows.Forms.Label OffsetCenterXLabel;
+        private System.Windows.Forms.NumericUpDown OffsetCenterXNumericUpDown;
+        private System.Windows.Forms.Label OffsetCenterYLabel;
+        private System.Windows.Forms.NumericUpDown OffsetCenterYNumericUpDown;
+        private System.Windows.Forms.Button OffsetBodyCenterButton;
         private System.Windows.Forms.NumericUpDown CenterXNumericUpDown;
         private System.Windows.Forms.NumericUpDown CenterYNumericUpDown;
         private System.Windows.Forms.ToolStrip AnimationEditToolStrip;

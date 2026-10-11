@@ -47,6 +47,7 @@ namespace UoFiddler.Controls.UserControls
             ReplaceText = new System.Windows.Forms.ToolStripTextBox();
             exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             importToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            resetNamesOnImportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             exportAllHueNamesListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripContainer = new System.Windows.Forms.ToolStripContainer();
@@ -70,9 +71,9 @@ namespace UoFiddler.Controls.UserControls
             // 
             // contextMenuStrip1
             // 
-            contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { saveToolStripMenuItem, replaceToolStripMenuItem, exportToolStripMenuItem, importToolStripMenuItem, toolStripSeparator1, exportAllHueNamesListToolStripMenuItem });
+            contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { saveToolStripMenuItem, replaceToolStripMenuItem, exportToolStripMenuItem, importToolStripMenuItem, resetNamesOnImportToolStripMenuItem, toolStripSeparator1, exportAllHueNamesListToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new System.Drawing.Size(203, 120);
+            contextMenuStrip1.Size = new System.Drawing.Size(203, 142);
             // 
             // saveToolStripMenuItem
             // 
@@ -108,6 +109,14 @@ namespace UoFiddler.Controls.UserControls
             importToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
             importToolStripMenuItem.Text = "Import..";
             importToolStripMenuItem.Click += OnImport;
+            // 
+            // resetNamesOnImportToolStripMenuItem
+            // 
+            resetNamesOnImportToolStripMenuItem.CheckOnClick = true;
+            resetNamesOnImportToolStripMenuItem.Name = "resetNamesOnImportToolStripMenuItem";
+            resetNamesOnImportToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            resetNamesOnImportToolStripMenuItem.Text = "Reset names on import";
+            resetNamesOnImportToolStripMenuItem.ToolTipText = "Imported hues are named \"Hue\" instead of the name stored in the file";
             // 
             // toolStripSeparator1
             // 
@@ -264,6 +273,7 @@ namespace UoFiddler.Controls.UserControls
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem resetNamesOnImportToolStripMenuItem;
         private System.Windows.Forms.ToolStripTextBox ReplaceText;
         private System.Windows.Forms.ToolStripMenuItem replaceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;

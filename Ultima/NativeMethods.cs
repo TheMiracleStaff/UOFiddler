@@ -84,6 +84,9 @@ namespace Ultima
         [DllImport("User32")]
         public static extern bool PostMessage(ClientWindowHandle hWnd, int wMsg, int wParam, int lParam);
 
+        [DllImport("User32", EntryPoint = "PostMessage")]
+        public static extern bool PostMessage(IntPtr hWnd, int wMsg, int wParam, int lParam);
+
         [DllImport("User32")]
         public static extern int OemKeyScan(int wOemChar);
 

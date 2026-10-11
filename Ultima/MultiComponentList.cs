@@ -112,6 +112,12 @@ namespace Ultima
                 }
             }
 
+            // No component has a drawable art (missing statics or misread rows)
+            if (xMax <= xMin || yMax <= yMin)
+            {
+                return null;
+            }
+
             var canvas = new Bitmap(xMax - xMin, yMax - yMin);
             Graphics gfx = Graphics.FromImage(canvas);
             gfx.Clear(Color.Transparent);
