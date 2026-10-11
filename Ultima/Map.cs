@@ -208,19 +208,25 @@ namespace Ultima
         public static Map Custom;
 
         /// <summary>
-        /// Most maps past the standard six that <see cref="DetectFacets"/> looks for.
+        /// The Miracle's maps past the standard six, as (map id, file index), in map id order.
+        /// Like Trammel on map0, Underdark Mirror shares Underdark's map6.
         /// </summary>
-        public const int MaximumExtraMaps = 2;
+        private static readonly (int MapId, int FileIndex)[] _extraMapLayout =
+        {
+            (6, 6), // Underdark
+            (7, 6), // Underdark Mirror
+            (8, 8)  // Darkcore
+        };
 
         /// <summary>
-        /// Highest file index searched for extra maps.
+        /// Most maps past the standard six that <see cref="DetectFacets"/> can add.
         /// </summary>
-        private const int _lastExtraFileIndex = 9;
+        public static int MaximumExtraMaps => _extraMapLayout.Length;
 
         private static readonly List<Map> _extraMaps = new List<Map>();
 
         /// <summary>
-        /// Maps past the standard six found in the client, numbered from 6 in file order.
+        /// The maps past the standard six found in the client, in map id order.
         /// </summary>
         public static IReadOnlyList<Map> ExtraMaps => _extraMaps;
 
@@ -238,9 +244,9 @@ namespace Ultima
         /// Fits map 5 and the extra maps to the client's files. Call after the client files change.
         /// </summary>
         /// <remarks>
-        /// Shards can ship a map5.mul of another shape than Ter Mur's and maps past the standard six,
-        /// for example The Miracle's Felucca sized map5, map6 and map8. Extra maps take the ids 6, 7, ...
-        /// in file order, so map6.mul and map8.mul become maps 6 and 7.
+        /// The Miracle ships a Felucca sized map5 (Black) and maps past the standard six laid out in
+        /// <see cref="_extraMapLayout"/>; each is added when its file is there. Adding stops at the first
+        /// missing one, so <see cref="All"/> stays indexed by map id. A standard client has none of them.
         /// </remarks>
         public static void DetectFacets()
         {
@@ -261,12 +267,14 @@ namespace Ultima
 
             _extraMaps.Clear();
 
-            for (int fileIndex = 6; fileIndex <= _lastExtraFileIndex && _extraMaps.Count < MaximumExtraMaps; fileIndex++)
+            foreach (var (mapId, fileIndex) in _extraMapLayout)
             {
-                if (MapSizes.TryDetectAnyShape(fileIndex, out size))
+                if (!MapSizes.TryDetectAnyShape(fileIndex, out size))
                 {
-                    _extraMaps.Add(new Map(fileIndex, 6 + _extraMaps.Count, size.Width, size.Height));
+                    break;
                 }
+
+                _extraMaps.Add(new Map(fileIndex, mapId, size.Width, size.Height));
             }
         }
 

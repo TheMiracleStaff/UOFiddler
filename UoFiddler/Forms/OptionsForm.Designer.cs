@@ -71,6 +71,8 @@ namespace UoFiddler.Forms
             map6Nametext = new System.Windows.Forms.TextBox();
             labelMap7 = new System.Windows.Forms.Label();
             map7Nametext = new System.Windows.Forms.TextBox();
+            labelMap8 = new System.Windows.Forms.Label();
+            map8Nametext = new System.Windows.Forms.TextBox();
             argstext = new System.Windows.Forms.TextBox();
             cmdtext = new System.Windows.Forms.TextBox();
             map4Nametext = new System.Windows.Forms.TextBox();
@@ -230,7 +232,7 @@ namespace UoFiddler.Forms
             // 
             // buttonApply
             // 
-            buttonApply.Location = new System.Drawing.Point(318, 646);
+            buttonApply.Location = new System.Drawing.Point(318, 676);
             buttonApply.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             buttonApply.Name = "buttonApply";
             buttonApply.Size = new System.Drawing.Size(88, 27);
@@ -297,7 +299,7 @@ namespace UoFiddler.Forms
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new System.Drawing.Point(7, 271);
+            label7.Location = new System.Drawing.Point(7, 301);
             label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label7.Name = "label7";
             label7.Size = new System.Drawing.Size(33, 15);
@@ -308,7 +310,7 @@ namespace UoFiddler.Forms
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new System.Drawing.Point(7, 301);
+            label8.Location = new System.Drawing.Point(7, 331);
             label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label8.Name = "label8";
             label8.Size = new System.Drawing.Size(31, 15);
@@ -410,11 +412,13 @@ namespace UoFiddler.Forms
             groupBox3.Controls.Add(map6Nametext);
             groupBox3.Controls.Add(labelMap7);
             groupBox3.Controls.Add(map7Nametext);
+            groupBox3.Controls.Add(labelMap8);
+            groupBox3.Controls.Add(map8Nametext);
             groupBox3.Location = new System.Drawing.Point(282, 6);
             groupBox3.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             groupBox3.Name = "groupBox3";
             groupBox3.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            groupBox3.Size = new System.Drawing.Size(220, 336);
+            groupBox3.Size = new System.Drawing.Size(220, 366);
             groupBox3.TabIndex = 5;
             groupBox3.TabStop = false;
             groupBox3.Text = "Map";
@@ -462,10 +466,28 @@ namespace UoFiddler.Forms
             map7Nametext.Name = "map7Nametext";
             map7Nametext.Size = new System.Drawing.Size(116, 23);
             map7Nametext.TabIndex = 18;
+            //
+            // labelMap8
+            //
+            labelMap8.AutoSize = true;
+            labelMap8.Location = new System.Drawing.Point(7, 262);
+            labelMap8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            labelMap8.Name = "labelMap8";
+            labelMap8.Size = new System.Drawing.Size(72, 15);
+            labelMap8.TabIndex = 19;
+            labelMap8.Text = "map8 Name";
+            //
+            // map8Nametext
+            //
+            map8Nametext.Location = new System.Drawing.Point(89, 258);
+            map8Nametext.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            map8Nametext.Name = "map8Nametext";
+            map8Nametext.Size = new System.Drawing.Size(116, 23);
+            map8Nametext.TabIndex = 20;
             // 
             // argstext
             // 
-            argstext.Location = new System.Drawing.Point(89, 298);
+            argstext.Location = new System.Drawing.Point(89, 328);
             argstext.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             argstext.Name = "argstext";
             argstext.Size = new System.Drawing.Size(116, 23);
@@ -473,7 +495,7 @@ namespace UoFiddler.Forms
             // 
             // cmdtext
             // 
-            cmdtext.Location = new System.Drawing.Point(89, 268);
+            cmdtext.Location = new System.Drawing.Point(89, 298);
             cmdtext.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             cmdtext.Name = "cmdtext";
             cmdtext.Size = new System.Drawing.Size(116, 23);
@@ -526,7 +548,7 @@ namespace UoFiddler.Forms
             groupBox4.Controls.Add(label10);
             groupBox4.Controls.Add(comboBoxSaveFormat);
             groupBox4.Controls.Add(labelSaveFormat);
-            groupBox4.Location = new System.Drawing.Point(16, 479);
+            groupBox4.Location = new System.Drawing.Point(16, 509);
             groupBox4.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             groupBox4.Name = "groupBox4";
             groupBox4.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -594,7 +616,7 @@ namespace UoFiddler.Forms
             ColorsGroupBox.Controls.Add(TileFocusColorComboBox);
             ColorsGroupBox.Controls.Add(PreviewBackgroundColorLabel);
             ColorsGroupBox.Controls.Add(PreviewBackgroundColorButton);
-            ColorsGroupBox.Location = new System.Drawing.Point(16, 348);
+            ColorsGroupBox.Location = new System.Drawing.Point(16, 378);
             ColorsGroupBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             ColorsGroupBox.Name = "ColorsGroupBox";
             ColorsGroupBox.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -666,7 +688,7 @@ namespace UoFiddler.Forms
             // 
             // buttonClose
             // 
-            buttonClose.Location = new System.Drawing.Point(414, 646);
+            buttonClose.Location = new System.Drawing.Point(414, 676);
             buttonClose.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             buttonClose.Name = "buttonClose";
             buttonClose.Size = new System.Drawing.Size(88, 27);
@@ -680,7 +702,7 @@ namespace UoFiddler.Forms
             ExportFilenamesGroupBox.Controls.Add(radioExportFilenameHex);
             ExportFilenamesGroupBox.Controls.Add(radioExportFilenameDec);
             ExportFilenamesGroupBox.Controls.Add(checkBoxExportFilenameDecPad);
-            ExportFilenamesGroupBox.Location = new System.Drawing.Point(16, 571);
+            ExportFilenamesGroupBox.Location = new System.Drawing.Point(16, 601);
             ExportFilenamesGroupBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             ExportFilenamesGroupBox.Name = "ExportFilenamesGroupBox";
             ExportFilenamesGroupBox.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -693,7 +715,7 @@ namespace UoFiddler.Forms
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(518, 685);
+            ClientSize = new System.Drawing.Size(518, 715);
             Controls.Add(buttonClose);
             Controls.Add(ExportFilenamesGroupBox);
             Controls.Add(ColorsGroupBox);
@@ -762,6 +784,8 @@ namespace UoFiddler.Forms
         private System.Windows.Forms.TextBox map6Nametext;
         private System.Windows.Forms.Label labelMap7;
         private System.Windows.Forms.TextBox map7Nametext;
+        private System.Windows.Forms.Label labelMap8;
+        private System.Windows.Forms.TextBox map8Nametext;
         private System.Windows.Forms.NumericUpDown numericUpDownItemSizeHeight;
         private System.Windows.Forms.NumericUpDown numericUpDownItemSizeWidth;
         private System.Windows.Forms.TextBox textBoxOutputPath;

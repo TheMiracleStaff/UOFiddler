@@ -84,7 +84,8 @@ namespace UoFiddler.Controls.Forms
                 comboBoxMapID.Items.Add(new SupportedMap(5, $"{Options.MapNames[5]} ({Map.TerMur.Width}x{Map.TerMur.Height})", Map.TerMur.Width, Map.TerMur.Height));
             }
 
-            foreach (Map extra in Map.ExtraMaps)
+            // One entry per file: maps sharing one (Underdark Mirror on map6) copy the same data
+            foreach (Map extra in Map.ExtraMaps.GroupBy(m => m.FileIndex).Select(g => g.First()))
             {
                 string name = extra.MapId < Options.MapNames.Length ? Options.MapNames[extra.MapId] : $"Map {extra.MapId}";
                 comboBoxMapID.Items.Add(new SupportedMap(extra.FileIndex, $"{name} (map{extra.FileIndex})", extra.Width, extra.Height));

@@ -81,7 +81,7 @@ namespace UoFiddler.Forms
             numericUpDownItemSizeWidth.Value = Options.ArtItemSizeWidth;
             numericUpDownItemSizeHeight.Value = Options.ArtItemSizeHeight;
             checkBoxItemClip.Checked = Options.ArtItemClip;
-            _mapNameTextBoxes = new[] { map0Nametext, map1Nametext, map2Nametext, map3Nametext, map4Nametext, map5Nametext, map6Nametext, map7Nametext };
+            _mapNameTextBoxes = new[] { map0Nametext, map1Nametext, map2Nametext, map3Nametext, map4Nametext, map5Nametext, map6Nametext, map7Nametext, map8Nametext };
             for (int i = 0; i < _mapNameTextBoxes.Length; i++)
             {
                 _mapNameTextBoxes[i].Text = Options.MapNames[i];
@@ -321,7 +321,7 @@ namespace UoFiddler.Forms
         }
 
         /// <summary>
-        /// Name boxes indexed by map id; maps 6 and 7 are the extra maps some shards ship.
+        /// Name boxes indexed by map id; maps 6 to 8 are The Miracle's extra maps.
         /// </summary>
         private TextBox[] _mapNameTextBoxes;
 
