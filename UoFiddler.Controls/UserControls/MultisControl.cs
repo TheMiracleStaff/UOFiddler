@@ -488,7 +488,7 @@ namespace UoFiddler.Controls.UserControls
                 return;
             }
 
-            bool isUohsa = Art.IsUOAHS();
+            bool isUohsa = Multis.IsHighSeasFormat;
             for (int x = 0; x < multi.Width; ++x)
             {
                 for (int y = 0; y < multi.Height; ++y)

@@ -68,7 +68,63 @@ namespace Ultima
         {
             _fileIndex = new FileIndex("Multi.idx", "Multi.mul", MaximumMultiIndex, 14);
             _components = new MultiComponentList[MaximumMultiIndex];
+            _isHighSeasFormat = null;
             ReloadUop();
+        }
+
+        private static bool? _isHighSeasFormat;
+
+        /// <summary>
+        /// Whether multi.mul uses the High Seas 16 byte component rows rather than the legacy 12 byte ones.
+        /// Both loading and saving follow it, so a file is written back in the format it was read in.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Art.IsUOAHS"/> alone is not reliable: shards that extend artidx.mul past the High Seas
+        /// size can still ship a legacy multi.mul, and reading it with 16 byte rows yields garbage components.
+        /// </remarks>
+        public static bool IsHighSeasFormat => _isHighSeasFormat ??= DetectHighSeasFormat();
+
+        /// <summary>
+        /// Tells the row size apart from the entry lengths: a length that is not a multiple of 12 rules out
+        /// legacy rows, one that is not a multiple of 16 rules out High Seas rows. Falls back to
+        /// <see cref="Art.IsUOAHS"/> when the lengths can't decide (no entries, all multiples of 48, or
+        /// contradicting entries).
+        /// </summary>
+        private static bool DetectHighSeasFormat()
+        {
+            int notLegacy = 0;
+            int notHighSeas = 0;
+
+            for (int i = 0; i < MaximumMultiIndex; ++i)
+            {
+                // Verdata patches are not part of multi.mul and may come from another client
+                if (!_fileIndex.Valid(i, out int length, out _, out bool patched) || patched || length <= 0)
+                {
+                    continue;
+                }
+
+                if (length % 12 != 0)
+                {
+                    ++notLegacy;
+                }
+
+                if (length % 16 != 0)
+                {
+                    ++notHighSeas;
+                }
+            }
+
+            if (notHighSeas > 0 && notLegacy == 0)
+            {
+                return false;
+            }
+
+            if (notLegacy > 0 && notHighSeas == 0)
+            {
+                return true;
+            }
+
+            return Art.IsUOAHS();
         }
 
         /// <summary>
@@ -110,7 +166,7 @@ namespace Ultima
 
                 // leaveOpen: stream is owned by the shared FileIndex; the
                 // BinaryReader is throwaway and must not close it.
-                if (Art.IsUOAHS())
+                if (IsHighSeasFormat)
                 {
                     return new MultiComponentList(new BinaryReader(stream, System.Text.Encoding.UTF8, leaveOpen: true), length / 16, true);
                 }
@@ -496,7 +552,7 @@ namespace Ultima
 
         public static void Save(string path)
         {
-            bool isUOAHS = Art.IsUOAHS();
+            bool isUOAHS = IsHighSeasFormat;
 
             string idx = Path.Combine(path, "multi.idx");
             string mul = Path.Combine(path, "multi.mul");

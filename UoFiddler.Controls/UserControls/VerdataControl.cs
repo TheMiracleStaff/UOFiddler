@@ -448,7 +448,7 @@ namespace UoFiddler.Controls.UserControls
 
             // Components tab — same format as MultisControl.ChangeComponentList
             richTextBoxMultiComponents.Clear();
-            bool isUohsa = Art.IsUOAHS();
+            bool isUohsa = Multis.IsHighSeasFormat;
             for (int x = 0; x < multi.Width; ++x)
             {
                 for (int y = 0; y < multi.Height; ++y)
