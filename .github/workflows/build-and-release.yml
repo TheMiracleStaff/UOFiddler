@@ -29,7 +29,6 @@ jobs:
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
       DOTNET_NOLOGO: 1
       Solution_Name: UoFiddler.sln
-      Asset_Name: UOFiddler-TM-Windows-x64-${{ github.ref_name }}
 
     steps:
       - name: Checkout
@@ -50,7 +49,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7.0.0
         with:
-          name: ${{ env.Asset_Name }}
+          name: UOFiddler-${{ runner.os }}-${{ runner.arch }}
           path: ./UOFiddler/bin/Release/
 
   release:
@@ -69,11 +68,11 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v8.0.1
         with:
-          name: ${{ env.Asset_Name }}
-          path: ./${{ env.Asset_Name }}/
+          name: UOFiddler-Windows-X64
+          path: ./UOFiddler-Windows-X64/
 
       - name: Archive release
-        run: 7z a -tzip ${{ env.Asset_Name }}.zip './${{ env.Asset_Name }}'
+        run: 7z a -tzip ${{ env.Asset_Name }}.zip './UOFiddler-Windows-X64'
 
       - name: Create release
         uses: softprops/action-gh-release@v2.6.1
