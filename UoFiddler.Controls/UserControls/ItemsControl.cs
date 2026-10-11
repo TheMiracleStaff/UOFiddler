@@ -391,10 +391,16 @@ namespace UoFiddler.Controls.UserControls
             int yMin = 0;
             int yMax = 0;
 
-            const int defaultSplitterDistance = 180;
+            // Paperdoll gumps linked to the item through its tiledata animation id
+            _detailArtHeight = bit?.Height ?? 0;
+            _detailGumpMaleHeight = SetDetailGump(DetailGumpMalePictureBox, item.Animation, _maleGumpOffset);
+            _detailGumpFemaleHeight = SetDetailGump(DetailGumpFemalePictureBox, item.Animation, _femaleGumpOffset);
+
+            // Resize first so the art below is drawn at the final picture box size
+            UpdateDetailSplitter();
+
             if (bit == null)
             {
-                splitContainer2.SplitterDistance = defaultSplitterDistance;
                 Bitmap newBit = new Bitmap(DetailPictureBox.Size.Width, DetailPictureBox.Size.Height);
                 using (Graphics newGraph = Graphics.FromImage(newBit))
                 {
@@ -406,9 +412,6 @@ namespace UoFiddler.Controls.UserControls
             }
             else
             {
-                var distance = bit.Size.Height + 10;
-                splitContainer2.SplitterDistance = distance < defaultSplitterDistance ? defaultSplitterDistance : distance;
-
                 Bitmap newBit = new Bitmap(DetailPictureBox.Size.Width, DetailPictureBox.Size.Height);
                 using (Graphics newGraph = Graphics.FromImage(newBit))
                 {
@@ -447,6 +450,63 @@ namespace UoFiddler.Controls.UserControls
 
             DetailTextBox.Clear();
             DetailTextBox.AppendText(sb.ToString());
+        }
+
+        private int _detailArtHeight;
+        private int _detailGumpMaleHeight;
+        private int _detailGumpFemaleHeight;
+
+        /// <summary>
+        /// Shows the gump at animation + offset in the given picture box.
+        /// </summary>
+        /// <returns>Height of the shown gump, or 0 when there is none.</returns>
+        private static int SetDetailGump(PictureBox pictureBox, int animation, int gumpOffset)
+        {
+            pictureBox.BackColor = Options.PreviewBackgroundColor;
+
+            // Gumps.GetGump returns the cached bitmap, so show a copy that can be disposed safely
+            Bitmap gump = animation > 0 ? Gumps.GetGump(animation + gumpOffset) : null;
+
+            pictureBox.Image?.Dispose();
+            pictureBox.Image = gump == null ? null : new Bitmap(gump);
+
+            return gump?.Height ?? 0;
+        }
+
+        /// <summary>
+        /// Sizes the detail image area to fit the image of the visible tab.
+        /// </summary>
+        private void UpdateDetailSplitter()
+        {
+            const int defaultSplitterDistance = 180;
+
+            int imageHeight = DetailTabControl.SelectedTab == DetailGumpMaleTabPage
+                ? _detailGumpMaleHeight
+                : DetailTabControl.SelectedTab == DetailGumpFemaleTabPage
+                    ? _detailGumpFemaleHeight
+                    : _detailArtHeight;
+
+            if (imageHeight == 0)
+            {
+                splitContainer2.SplitterDistance = defaultSplitterDistance;
+                return;
+            }
+
+            int tabHeaderHeight = DetailTabControl.Height - DetailTabControl.DisplayRectangle.Height;
+            int distance = imageHeight + 10 + tabHeaderHeight;
+            splitContainer2.SplitterDistance = Math.Max(defaultSplitterDistance, distance);
+        }
+
+        private void DetailTabControl_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (DetailTabControl.SelectedTab == DetailArtTabPage && _selectedGraphicId >= 0)
+            {
+                // The art is drawn at the picture box size, which may have changed while hidden
+                UpdateDetail(_selectedGraphicId);
+                return;
+            }
+
+            UpdateDetailSplitter();
         }
 
         private void ChangeBackgroundColorToolStripMenuItemDetail_Click(object sender, EventArgs e)
