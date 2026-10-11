@@ -511,6 +511,12 @@ namespace UoFiddler.Controls.UserControls
                 else
                 {
                     SetSelection(_selectionAnchor, end);
+
+                    // Ctrl + middle drag adds the area to the region list straight away
+                    if ((ModifierKeys & Keys.Control) != 0)
+                    {
+                        AddSelectionToRegion();
+                    }
                 }
             }
 
@@ -581,6 +587,127 @@ namespace UoFiddler.Controls.UserControls
 
             RectangleF blocks = ToScreen(selection.Left & ~7, selection.Top & ~7, selection.Right | 7, selection.Bottom | 7);
             graphics.DrawRectangle(_selectionBlocksPen, blocks.X, blocks.Y, blocks.Width - 1, blocks.Height - 1);
+        }
+
+        /// <summary>
+        /// Rectangles of the region being built, in tiles with start and end inclusive like the selection.
+        /// </summary>
+        private readonly List<Rectangle> _regionRectangles = new List<Rectangle>();
+        private Map _regionMap;
+
+        private static readonly Brush _regionBrush = new SolidBrush(Color.FromArgb(96, 220, 145, 72));
+        private static readonly Pen _regionPen = new Pen(Color.FromArgb(220, 220, 145, 72));
+
+        private void DrawRegionRectangles(Graphics graphics)
+        {
+            if (!showRegionToolStripMenuItem.Checked || _regionMap != CurrentMap)
+            {
+                return;
+            }
+
+            int originX = Round(hScrollBar.Value);
+            int originY = Round(vScrollBar.Value);
+
+            foreach (Rectangle rect in _regionRectangles)
+            {
+                var area = new RectangleF(
+                    (float)((rect.Left - originX) * Zoom), (float)((rect.Top - originY) * Zoom),
+                    (float)((rect.Width + 1) * Zoom), (float)((rect.Height + 1) * Zoom));
+                graphics.FillRectangle(_regionBrush, area);
+                graphics.DrawRectangle(_regionPen, area.X, area.Y, area.Width - 1, area.Height - 1);
+            }
+        }
+
+        private void AddSelectionToRegion()
+        {
+            if (Selection is not Rectangle selection)
+            {
+                MessageBox.Show("Select an area first by dragging with the middle mouse button.", "Region",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (_regionRectangles.Count > 0 && _regionMap != CurrentMap)
+            {
+                if (MessageBox.Show($"The region list holds {_regionRectangles.Count} rectangle(s) of another map. Start a new list?",
+                        "Region", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                {
+                    return;
+                }
+
+                _regionRectangles.Clear();
+            }
+
+            _regionMap = CurrentMap;
+            _regionRectangles.Add(selection);
+            UpdateRegionLabel();
+            pictureBox.Invalidate();
+        }
+
+        private void UpdateRegionLabel()
+        {
+            regionToolStripDropDownButton.Text = _regionRectangles.Count > 0 ? $"Regions ({_regionRectangles.Count})" : "Regions";
+        }
+
+        private void RegionDropDownOpening(object sender, EventArgs e)
+        {
+            bool hasSelection = Selection.HasValue;
+            bool hasRegion = _regionRectangles.Count > 0 && _regionMap == CurrentMap;
+
+            addSelectionToRegionToolStripMenuItem.Enabled = hasSelection;
+            removeLastRegionRectangleToolStripMenuItem.Enabled = hasRegion;
+            clearRegionToolStripMenuItem.Enabled = _regionRectangles.Count > 0;
+            exportRegionToolStripMenuItem.Enabled = hasRegion;
+            exportResourceRegionToolStripMenuItem.Enabled = hasSelection;
+        }
+
+        private void OnClickAddSelectionToRegion(object sender, EventArgs e)
+        {
+            AddSelectionToRegion();
+        }
+
+        private void OnClickRemoveLastRegionRectangle(object sender, EventArgs e)
+        {
+            if (_regionRectangles.Count == 0)
+            {
+                return;
+            }
+
+            _regionRectangles.RemoveAt(_regionRectangles.Count - 1);
+            UpdateRegionLabel();
+            pictureBox.Invalidate();
+        }
+
+        private void OnClickClearRegion(object sender, EventArgs e)
+        {
+            _regionRectangles.Clear();
+            UpdateRegionLabel();
+            pictureBox.Invalidate();
+        }
+
+        private void OnClickShowRegion(object sender, EventArgs e)
+        {
+            pictureBox.Invalidate();
+        }
+
+        private void OnClickExportRegion(object sender, EventArgs e)
+        {
+            if (_regionRectangles.Count == 0 || _regionMap != CurrentMap)
+            {
+                return;
+            }
+
+            new RegionExportForm(_regionRectangles.ToList()).Show(this);
+        }
+
+        private void OnClickExportResourceRegion(object sender, EventArgs e)
+        {
+            if (Selection is not Rectangle selection)
+            {
+                return;
+            }
+
+            new ResourceRegionExportForm(selection, _currentMapId).Show(this);
         }
 
         private void OnClickClearSelection(object sender, EventArgs e)
@@ -1015,6 +1142,7 @@ namespace UoFiddler.Controls.UserControls
                 }
             }
 
+            DrawRegionRectangles(e.Graphics);
             DrawSelection(e.Graphics);
 
             if (OverlayObjectTree.Nodes.Count <= 0 || !showMarkersToolStripMenuItem.Checked)

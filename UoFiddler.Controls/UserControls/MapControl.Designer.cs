@@ -114,6 +114,14 @@ namespace UoFiddler.Controls.UserControls
             this.tbtDiffToolStripSeparator = new System.Windows.Forms.ToolStripSeparator();
             this.clearSelectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SelectionLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.regionToolStripDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
+            this.addSelectionToRegionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.removeLastRegionRectangleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clearRegionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showRegionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.regionToolStripSeparator = new System.Windows.Forms.ToolStripSeparator();
+            this.exportRegionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportResourceRegionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.defragStaticsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importStaticsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.meltStaticsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -474,7 +482,8 @@ namespace UoFiddler.Controls.UserControls
             this.ProgressBar,
             this.PreloadMap,
             this.toolStripDropDownButton3,
-            this.tbtDiffToolStripDropDownButton});
+            this.tbtDiffToolStripDropDownButton,
+            this.regionToolStripDropDownButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
@@ -698,6 +707,74 @@ namespace UoFiddler.Controls.UserControls
             this.clearSelectionToolStripMenuItem.Size = new System.Drawing.Size(320, 22);
             this.clearSelectionToolStripMenuItem.Text = "Clear Selection";
             this.clearSelectionToolStripMenuItem.Click += new System.EventHandler(this.OnClickClearSelection);
+            //
+            // regionToolStripDropDownButton
+            //
+            this.regionToolStripDropDownButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.regionToolStripDropDownButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addSelectionToRegionToolStripMenuItem,
+            this.removeLastRegionRectangleToolStripMenuItem,
+            this.clearRegionToolStripMenuItem,
+            this.showRegionToolStripMenuItem,
+            this.regionToolStripSeparator,
+            this.exportRegionToolStripMenuItem,
+            this.exportResourceRegionToolStripMenuItem});
+            this.regionToolStripDropDownButton.Name = "regionToolStripDropDownButton";
+            this.regionToolStripDropDownButton.Size = new System.Drawing.Size(62, 25);
+            this.regionToolStripDropDownButton.Text = "Regions";
+            this.regionToolStripDropDownButton.DropDownOpening += new System.EventHandler(this.RegionDropDownOpening);
+            //
+            // addSelectionToRegionToolStripMenuItem
+            //
+            this.addSelectionToRegionToolStripMenuItem.Name = "addSelectionToRegionToolStripMenuItem";
+            this.addSelectionToRegionToolStripMenuItem.Size = new System.Drawing.Size(280, 22);
+            this.addSelectionToRegionToolStripMenuItem.Text = "Add Selection to Region";
+            this.addSelectionToRegionToolStripMenuItem.ToolTipText = "Adds the selected area to the region\'s rectangles. Ctrl + middle mouse drag does the same.";
+            this.addSelectionToRegionToolStripMenuItem.Click += new System.EventHandler(this.OnClickAddSelectionToRegion);
+            //
+            // removeLastRegionRectangleToolStripMenuItem
+            //
+            this.removeLastRegionRectangleToolStripMenuItem.Name = "removeLastRegionRectangleToolStripMenuItem";
+            this.removeLastRegionRectangleToolStripMenuItem.Size = new System.Drawing.Size(280, 22);
+            this.removeLastRegionRectangleToolStripMenuItem.Text = "Remove Last Rectangle";
+            this.removeLastRegionRectangleToolStripMenuItem.Click += new System.EventHandler(this.OnClickRemoveLastRegionRectangle);
+            //
+            // clearRegionToolStripMenuItem
+            //
+            this.clearRegionToolStripMenuItem.Name = "clearRegionToolStripMenuItem";
+            this.clearRegionToolStripMenuItem.Size = new System.Drawing.Size(280, 22);
+            this.clearRegionToolStripMenuItem.Text = "Clear Region";
+            this.clearRegionToolStripMenuItem.Click += new System.EventHandler(this.OnClickClearRegion);
+            //
+            // showRegionToolStripMenuItem
+            //
+            this.showRegionToolStripMenuItem.Checked = true;
+            this.showRegionToolStripMenuItem.CheckOnClick = true;
+            this.showRegionToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.showRegionToolStripMenuItem.Name = "showRegionToolStripMenuItem";
+            this.showRegionToolStripMenuItem.Size = new System.Drawing.Size(280, 22);
+            this.showRegionToolStripMenuItem.Text = "Show Region Rectangles";
+            this.showRegionToolStripMenuItem.Click += new System.EventHandler(this.OnClickShowRegion);
+            //
+            // regionToolStripSeparator
+            //
+            this.regionToolStripSeparator.Name = "regionToolStripSeparator";
+            this.regionToolStripSeparator.Size = new System.Drawing.Size(277, 6);
+            //
+            // exportRegionToolStripMenuItem
+            //
+            this.exportRegionToolStripMenuItem.Name = "exportRegionToolStripMenuItem";
+            this.exportRegionToolStripMenuItem.Size = new System.Drawing.Size(280, 22);
+            this.exportRegionToolStripMenuItem.Text = "Export Region XML...";
+            this.exportRegionToolStripMenuItem.Click += new System.EventHandler(this.OnClickExportRegion);
+            //
+            // exportResourceRegionToolStripMenuItem
+            //
+            this.exportResourceRegionToolStripMenuItem.Name = "exportResourceRegionToolStripMenuItem";
+            this.exportResourceRegionToolStripMenuItem.Size = new System.Drawing.Size(280, 22);
+            this.exportResourceRegionToolStripMenuItem.Text = "Export Resource Region (Selection)...";
+            this.exportResourceRegionToolStripMenuItem.ToolTipText = "Builds the <VeinInfo> entry with the ore mix for the selected area";
+            this.exportResourceRegionToolStripMenuItem.Click += new System.EventHandler(this.OnClickExportResourceRegion);
             // 
             // defragStaticsToolStripMenuItem
             // 
@@ -923,6 +1000,14 @@ namespace UoFiddler.Controls.UserControls
         private System.Windows.Forms.ToolStripSeparator tbtDiffToolStripSeparator;
         private System.Windows.Forms.ToolStripMenuItem clearSelectionToolStripMenuItem;
         private System.Windows.Forms.ToolStripStatusLabel SelectionLabel;
+        private System.Windows.Forms.ToolStripDropDownButton regionToolStripDropDownButton;
+        private System.Windows.Forms.ToolStripMenuItem addSelectionToRegionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem removeLastRegionRectangleToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem clearRegionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem showRegionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator regionToolStripSeparator;
+        private System.Windows.Forms.ToolStripMenuItem exportRegionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exportResourceRegionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
