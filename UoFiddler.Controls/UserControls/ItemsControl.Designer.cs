@@ -537,9 +537,7 @@ namespace UoFiddler.Controls.UserControls
             // 
             // GraphicLabel
             // 
-            GraphicLabel.AutoSize = false;
             GraphicLabel.Name = "GraphicLabel";
-            GraphicLabel.Size = new System.Drawing.Size(150, 17);
             GraphicLabel.Text = "Graphic:";
             GraphicLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
