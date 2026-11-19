@@ -528,6 +528,102 @@ namespace Ultima
             Frames.Add(new FrameEdit(bit, Palette, centerX, centerY));
         }
 
+        /// <summary>
+        /// Puts the colors of <paramref name="images"/> into the palette before they are added as frames.
+        /// Entries referenced by existing frames are kept; every other entry is reused, most frequent colors first.
+        /// Pixels are read as Format16bppArgb1555 and 0 (transparent) is ignored.
+        /// </summary>
+        /// <returns>How many distinct colors did not fit; they are drawn with the nearest entry.</returns>
+        public unsafe int AddColorsToPalette(IEnumerable<Bitmap> images)
+        {
+            var counts = new Dictionary<ushort, int>();
+            foreach (Bitmap bit in images)
+            {
+                BitmapData bd = bit.LockBits(new Rectangle(0, 0, bit.Width, bit.Height), ImageLockMode.ReadOnly, PixelFormat.Format16bppArgb1555);
+                try
+                {
+                    var line = (ushort*)bd.Scan0;
+                    int delta = bd.Stride >> 1;
+                    for (int y = 0; y < bit.Height; ++y, line += delta)
+                    {
+                        for (int x = 0; x < bit.Width; ++x)
+                        {
+                            ushort c = line[x];
+                            if (c == 0)
+                            {
+                                continue;
+                            }
+
+                            if (c == 0x8000)
+                            {
+                                c = 0x8001; // 0x8000 is saved as 0, which the client draws as transparent
+                            }
+
+                            counts.TryGetValue(c, out int n);
+                            counts[c] = n + 1;
+                        }
+                    }
+                }
+                finally
+                {
+                    bit.UnlockBits(bd);
+                }
+            }
+
+            var used = new bool[PaletteCapacity];
+            if (Frames != null)
+            {
+                foreach (FrameEdit frame in Frames)
+                {
+                    if (frame.RawData == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (FrameEdit.Raw raw in frame.RawData)
+                    {
+                        foreach (byte b in raw.data)
+                        {
+                            used[b] = true;
+                        }
+                    }
+                }
+            }
+
+            var present = new HashSet<ushort>();
+            for (int i = 0; i < PaletteCapacity; ++i)
+            {
+                if (used[i])
+                {
+                    present.Add(Palette[i]);
+                }
+            }
+
+            var missing = new List<KeyValuePair<ushort, int>>();
+            foreach (KeyValuePair<ushort, int> kv in counts)
+            {
+                if (!present.Contains(kv.Key))
+                {
+                    missing.Add(kv);
+                }
+            }
+
+            missing.Sort((a, b) => b.Value != a.Value ? b.Value.CompareTo(a.Value) : a.Key.CompareTo(b.Key));
+
+            int next = 0;
+            for (int i = 0; i < PaletteCapacity; ++i)
+            {
+                if (used[i])
+                {
+                    continue;
+                }
+
+                Palette[i] = next < missing.Count ? missing[next++].Key : (ushort)0x8000;
+            }
+
+            return missing.Count - next;
+        }
+
         public void ReplaceFrame(Bitmap bit, int index)
         {
             if ((Frames == null) || (Frames.Count == 0))
@@ -768,6 +864,7 @@ namespace Ultima
             var line = (ushort*)bd.Scan0;
             int delta = bd.Stride >> 1;
             var tmp = new List<Raw>();
+            var paletteLookup = new Dictionary<ushort, byte>();
 
             for (int y = 0; y < bit.Height; ++y, line += delta)
             {
@@ -816,7 +913,7 @@ namespace Ultima
                     while (r < raw.run)
                     {
                         ushort col = cur[r + i];
-                        raw.data[r++] = GetPaletteIndex(palette, col);
+                        raw.data[r++] = GetPaletteIndex(palette, col, paletteLookup);
                     }
                     tmp.Add(raw);
                     x = j + 1;
@@ -841,17 +938,50 @@ namespace Ultima
             Center = new Point(x, y);
         }
 
-        private static byte GetPaletteIndex(IReadOnlyList<ushort> palette, ushort col)
+        // Exact match, else the nearest color. Falling back to index 0 used to paint every
+        // color missing from the palette with palette[0] (usually black). Entries equal to
+        // 0x8000 are skipped: they are saved as 0, which the client draws as transparent.
+        private static byte GetPaletteIndex(IReadOnlyList<ushort> palette, ushort col, Dictionary<ushort, byte> cache)
         {
+            if (cache.TryGetValue(col, out byte cached))
+            {
+                return cached;
+            }
+
+            ushort target = col == 0x8000 ? (ushort)0x8001 : col;
+            int tr = (target >> 10) & 0x1F;
+            int tg = (target >> 5) & 0x1F;
+            int tb = target & 0x1F;
+
+            int best = 0;
+            int bestDistance = int.MaxValue;
             for (int i = 0; i < palette.Count; i++)
             {
-                if (palette[i] == col)
+                ushort entry = palette[i];
+                if (entry == target)
                 {
-                    return (byte)i;
+                    best = i;
+                    break;
+                }
+
+                if (entry <= 0x8000)
+                {
+                    continue;
+                }
+
+                int dr = ((entry >> 10) & 0x1F) - tr;
+                int dg = ((entry >> 5) & 0x1F) - tg;
+                int db = (entry & 0x1F) - tb;
+                int distance = (dr * dr) + (dg * dg) + (db * db);
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = i;
                 }
             }
 
-            return 0;
+            cache[col] = (byte)best;
+            return (byte)best;
         }
 
         public void Save(BinaryWriter bin)

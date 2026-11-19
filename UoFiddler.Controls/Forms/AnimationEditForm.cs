@@ -16,7 +16,6 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using System.Windows.Media.Imaging;
 using Ultima;
 using UoFiddler.Controls.Classes;
 
@@ -1376,7 +1375,7 @@ namespace UoFiddler.Controls.Forms
                 {
                     Bitmap bitmap = new Bitmap(bmpTemp);
 
-                    if (dialog.FileName.Contains(".bmp"))
+                    if (dialog.FileName.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase))
                     {
                         bitmap = ConvertBmpAnim(bitmap, (int)numericUpDownRed.Value, (int)numericUpDownGreen.Value, (int)numericUpDownBlue.Value);
                     }
@@ -1387,7 +1386,9 @@ namespace UoFiddler.Controls.Forms
                         return;
                     }
 
+                    edit.AddColorsToPalette(new[] { bitmap });
                     edit.ReplaceFrame(bitmap, frameIndex);
+                    SetPaletteBox();
 
                     FramesListView.Invalidate();
 
@@ -1411,107 +1412,50 @@ namespace UoFiddler.Controls.Forms
                     if (dialog.ShowDialog() == DialogResult.OK)
                     {
                         _lastAddFilterIndex = dialog.FilterIndex;
-                        FramesListView.BeginUpdate();
-                        try
+
+                        AnimIdx edit = AnimationEdit.GetAnimation(_fileType, _currentBody, _currentAction, _currentDir);
+                        if (edit != null)
                         {
-                            //My Soulblighter Modifications
-                            foreach (var fileName in dialog.FileNames)
+                            var frames = new List<Bitmap>();
+                            FramesListView.BeginUpdate();
+                            try
                             {
-                                using (var bmpTemp = new Bitmap(fileName))
+                                // FileNames follows the selection, not the name: sort so frame_00, frame_01... stay in order
+                                foreach (var fileName in dialog.FileNames.OrderBy(f => f, StringComparer.OrdinalIgnoreCase))
                                 {
-                                    Bitmap bitmap = new Bitmap(bmpTemp);
+                                    frames.AddRange(LoadFramesForImport(fileName));
+                                }
 
-                                    if (dialog.FileName.Contains(".bmp") || dialog.FileName.Contains(".tiff") ||
-                                        dialog.FileName.Contains(".png") || dialog.FileName.Contains(".jpeg") ||
-                                        dialog.FileName.Contains(".jpg"))
-                                    {
-                                        bitmap = ConvertBmpAnim(bitmap, (int)numericUpDownRed.Value, (int)numericUpDownGreen.Value, (int)numericUpDownBlue.Value);
+                                // The palette must hold the colors of every new frame before they are encoded:
+                                // FrameEdit stores palette indices, and BMP/PNG imports never filled the palette.
+                                edit.AddColorsToPalette(frames);
 
-                                        //edit.GetImagePalette(bitmap);
-                                    }
+                                foreach (Bitmap bitmap in frames)
+                                {
+                                    AddFrameToList(edit, bitmap);
+                                }
 
-                                    AnimIdx edit = AnimationEdit.GetAnimation(_fileType, _currentBody, _currentAction, _currentDir);
-                                    if (edit == null)
-                                    {
-                                        continue;
-                                    }
+                                if (frames.Count > 0)
+                                {
+                                    SetPaletteBox();
 
-                                    //Gif Especial Properties
-                                    if (dialog.FileName.Contains(".gif"))
-                                    {
-                                        FrameDimension dimension = new FrameDimension(bitmap.FrameDimensionsList[0]);
+                                    CenterXNumericUpDown.Value = edit.Frames[FramesTrackBar.Value].Center.X;
+                                    CenterYNumericUpDown.Value = edit.Frames[FramesTrackBar.Value].Center.Y;
 
-                                        // Number of frames
-                                        int frameCount = bitmap.GetFrameCount(dimension);
-
-                                        Bitmap[] bitBmp = new Bitmap[frameCount];
-
-                                        bitmap.SelectActiveFrame(dimension, 0);
-                                        UpdateGifPalette(bitmap, edit);
-
-                                        ProgressBar.Maximum = frameCount;
-
-                                        AddImageAtCertainIndex(frameCount, bitBmp, bitmap, dimension, edit);
-
-                                        ProgressBar.Value = 0;
-                                        ProgressBar.Invalidate();
-
-                                        SetPaletteBox();
-
-                                        CenterXNumericUpDown.Value = edit.Frames[FramesTrackBar.Value].Center.X;
-                                        CenterYNumericUpDown.Value = edit.Frames[FramesTrackBar.Value].Center.Y;
-
-                                        Options.ChangedUltimaClass["Animations"] = true;
-                                    }
-                                    //End of Soulblighter Modifications
-                                    else
-                                    {
-                                        edit.AddFrame(bitmap);
-
-                                        TreeNode node = GetNode(_currentBody);
-                                        if (node != null)
-                                        {
-                                            node.ForeColor = Color.Empty;
-                                            node.Nodes[_currentAction].ForeColor = Color.Empty;
-                                        }
-
-                                        int i = edit.Frames.Count - 1;
-                                        var item = new ListViewItem(i.ToString(), 0)
-                                        {
-                                            Tag = i
-                                        };
-
-                                        FramesListView.Items.Add(item);
-
-                                        int width = FramesListView.TileSize.Width - 5;
-                                        if (bitmap.Width > FramesListView.TileSize.Width)
-                                        {
-                                            width = bitmap.Width;
-                                        }
-
-                                        int height = FramesListView.TileSize.Height - 5;
-                                        if (bitmap.Height > FramesListView.TileSize.Height)
-                                        {
-                                            height = bitmap.Height;
-                                        }
-
-                                        FramesListView.TileSize = new Size(width + 5, height + 5);
-                                        FramesTrackBar.Maximum = i;
-
-                                        CenterXNumericUpDown.Value = edit.Frames[FramesTrackBar.Value].Center.X;
-                                        CenterYNumericUpDown.Value = edit.Frames[FramesTrackBar.Value].Center.Y;
-
-                                        Options.ChangedUltimaClass["Animations"] = true;
-                                    }
+                                    Options.ChangedUltimaClass["Animations"] = true;
                                 }
                             }
-                        }
-                        finally
-                        {
-                            FramesListView.EndUpdate();
-                        }
+                            finally
+                            {
+                                FramesListView.EndUpdate();
+                                foreach (Bitmap bitmap in frames)
+                                {
+                                    bitmap.Dispose();
+                                }
+                            }
 
-                        FramesListView.Invalidate();
+                            FramesListView.Invalidate();
+                        }
                     }
                 }
             }
@@ -1521,15 +1465,83 @@ namespace UoFiddler.Controls.Forms
             AfterSelectTreeView(null, null);
         }
 
+        /// <summary>
+        /// Every frame of <paramref name="fileName"/> (all frames of a GIF or multi-page TIFF), ready for AddFrame.
+        /// </summary>
+        private List<Bitmap> LoadFramesForImport(string fileName)
+        {
+            var result = new List<Bitmap>();
+            using (var image = new Bitmap(fileName))
+            {
+                FrameDimension dimension = image.FrameDimensionsList.Length > 0
+                    ? new FrameDimension(image.FrameDimensionsList[0])
+                    : null;
+                int frameCount = dimension != null ? image.GetFrameCount(dimension) : 1;
+
+                for (int index = 0; index < frameCount; index++)
+                {
+                    if (frameCount > 1)
+                    {
+                        image.SelectActiveFrame(dimension, index);
+                    }
+
+                    using (var frame = new Bitmap(image))
+                    {
+                        result.Add(ConvertBmpAnim(frame, (int)numericUpDownRed.Value, (int)numericUpDownGreen.Value, (int)numericUpDownBlue.Value));
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private void AddFrameToList(AnimIdx edit, Bitmap bitmap)
+        {
+            edit.AddFrame(bitmap, bitmap.Width / 2);
+
+            TreeNode node = GetNode(_currentBody);
+            if (node != null)
+            {
+                node.ForeColor = Color.Empty;
+                node.Nodes[_currentAction].ForeColor = Color.Empty;
+            }
+
+            int i = edit.Frames.Count - 1;
+            var item = new ListViewItem(i.ToString(), 0)
+            {
+                Tag = i
+            };
+
+            FramesListView.Items.Add(item);
+
+            int width = FramesListView.TileSize.Width - 5;
+            if (bitmap.Width > FramesListView.TileSize.Width)
+            {
+                width = bitmap.Width;
+            }
+
+            int height = FramesListView.TileSize.Height - 5;
+            if (bitmap.Height > FramesListView.TileSize.Height)
+            {
+                height = bitmap.Height;
+            }
+
+            FramesListView.TileSize = new Size(width + 5, height + 5);
+            FramesTrackBar.Maximum = i;
+        }
+
         private void AddImageAtCertainIndex(int frameCount, Bitmap[] bitBmp, Bitmap bmp, FrameDimension dimension, AnimIdx edit)
         {
             // Return an Image at a certain index
             for (int index = 0; index < frameCount; index++)
             {
-                bitBmp[index] = new Bitmap(bmp.Width, bmp.Height, PixelFormat.Format16bppArgb1555);
+                // Copy the selected frame: converting a new empty bitmap added blank frames
                 bmp.SelectActiveFrame(dimension, index);
-                bitBmp[index] = ConvertBmpAnim(bitBmp[index], (int) numericUpDownRed.Value,
-                    (int) numericUpDownGreen.Value, (int) numericUpDownBlue.Value);
+                using (var frame = new Bitmap(bmp))
+                {
+                    bitBmp[index] = ConvertBmpAnim(frame, (int) numericUpDownRed.Value,
+                        (int) numericUpDownGreen.Value, (int) numericUpDownBlue.Value);
+                }
                 edit.AddFrame(bitBmp[index], bitBmp[index].Width / 2);
                 TreeNode node = GetNode(_currentBody);
                 if (node != null)
@@ -2134,13 +2146,12 @@ namespace UoFiddler.Controls.Forms
                 if (edit != null)
                 {
                     // Gif Especial Properties
-                    if (dialog.FileNames[w].Contains(".gif"))
+                    if (dialog.FileNames[w].EndsWith(".gif", StringComparison.OrdinalIgnoreCase))
                     {
                         // dialog.Filename replaced by dialog.FileNames[w]
-                        using (Bitmap bmpTemp = new Bitmap(dialog.FileNames[w]))
+                        // Use the decoded GIF itself: new Bitmap(gif) keeps only the first frame
+                        using (Bitmap bitmap = new Bitmap(dialog.FileNames[w]))
                         {
-                            Bitmap bitmap = new Bitmap(bmpTemp);
-
                             FrameDimension dimension = new FrameDimension(bitmap.FrameDimensionsList[0]);
 
                             // Number of frames
@@ -2820,20 +2831,34 @@ namespace UoFiddler.Controls.Forms
                     return;
                 }
 
-                foreach (string filename in dialog.FileNames)
+                AnimIdx edit = AnimationEdit.GetAnimation(_fileType, _currentBody, _currentAction, _currentDir);
+                if (edit == null)
                 {
-                    Bitmap bit = new Bitmap(filename);
-                    AnimIdx edit = AnimationEdit.GetAnimation(_fileType, _currentBody, _currentAction, _currentDir);
-                    if (edit != null)
-                    {
-                        bit = ConvertBmpAnim(bit, (int)numericUpDownRed.Value, (int)numericUpDownGreen.Value, (int)numericUpDownBlue.Value);
-                        UpdateImagePalette(bit, edit);
-                    }
-                    SetPaletteBox();
-                    FramesListView.Invalidate();
-                    Options.ChangedUltimaClass["Animations"] = true;
-                    SetPaletteBox();
+                    return;
                 }
+
+                // One palette from all the selected images: each file used to reset it, so only the last one counted
+                var frames = new List<Bitmap>();
+                try
+                {
+                    foreach (string filename in dialog.FileNames)
+                    {
+                        frames.AddRange(LoadFramesForImport(filename));
+                    }
+
+                    edit.AddColorsToPalette(frames);
+                }
+                finally
+                {
+                    foreach (Bitmap frame in frames)
+                    {
+                        frame.Dispose();
+                    }
+                }
+
+                SetPaletteBox();
+                FramesListView.Invalidate();
+                Options.ChangedUltimaClass["Animations"] = true;
             }
         }
         //End of Soulblighter Modification
@@ -4593,127 +4618,50 @@ namespace UoFiddler.Controls.Forms
             }
         }
 
+        /// <summary>
+        /// Puts the colors of every frame of <paramref name="bit"/> into the palette of <paramref name="animIdx"/>.
+        /// </summary>
+        /// <remarks>
+        /// The palette used to come from a GifBitmapDecoder fed with ImageConverter bytes. A bitmap copied with
+        /// new Bitmap(gif) is a MemoryBmp, which ImageConverter writes as PNG, so the decoder threw
+        /// FileFormatException. Reading the pixels works for any source and matches what FrameEdit encodes.
+        /// </remarks>
         public void UpdateGifPalette(Bitmap bit, AnimIdx animIdx)
         {
-            using (MemoryStream imageStreamSource = new MemoryStream())
+            var frames = new List<Bitmap>();
+            try
             {
-                ImageConverter ic = new ImageConverter();
-                byte[] btImage = (byte[])ic.ConvertTo(bit, typeof(byte[]));
-                imageStreamSource.Write(btImage, 0, btImage.Length);
-                GifBitmapDecoder decoder = new GifBitmapDecoder(imageStreamSource, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-                BitmapPalette pal = decoder.Palette;
-                int i;
-                for (i = 0; i < Animations.PaletteCapacity; i++)
-                {
-                    animIdx.Palette[i] = 0;
-                }
+                FrameDimension dimension = bit.FrameDimensionsList.Length > 0
+                    ? new FrameDimension(bit.FrameDimensionsList[0])
+                    : null;
+                int frameCount = dimension != null ? bit.GetFrameCount(dimension) : 1;
 
-                try
+                for (int index = 0; index < frameCount; index++)
                 {
-                    i = 0;
-                    while (i < Animations.PaletteCapacity) //&& i < pal.Colors.Count)
+                    if (frameCount > 1)
                     {
-                        int red = pal.Colors[i].R / 8;
-                        int green = pal.Colors[i].G / 8;
-                        int blue = pal.Colors[i].B / 8;
+                        bit.SelectActiveFrame(dimension, index);
+                    }
 
-                        int contaFinal = (0x400 * red) + (0x20 * green) + blue + 0x8000;
-                        if (contaFinal == 0x8000)
-                        {
-                            contaFinal = 0x8001;
-                        }
-
-                        animIdx.Palette[i] = (ushort)contaFinal;
-                        i++;
+                    using (var frame = new Bitmap(bit))
+                    {
+                        frames.Add(ConvertBmpAnim(frame, (int)numericUpDownRed.Value, (int)numericUpDownGreen.Value, (int)numericUpDownBlue.Value));
                     }
                 }
-                catch (IndexOutOfRangeException)
+
+                if (frameCount > 1)
                 {
-                    // TODO: ignored?
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                    // TODO: ignored?
+                    bit.SelectActiveFrame(dimension, 0);
                 }
 
-                for (i = 0; i < Animations.PaletteCapacity; i++)
-                {
-                    if (animIdx.Palette[i] < 0x8000)
-                    {
-                        animIdx.Palette[i] = 0x8000;
-                    }
-                }
+                animIdx.AddColorsToPalette(frames);
             }
-        }
-
-        public unsafe void UpdateImagePalette(Bitmap bit, AnimIdx animIdx)
-        {
-            int count = 0;
-            var bmp = new Bitmap(bit);
-            BitmapData bd = bmp.LockBits(
-                new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format16bppArgb1555);
-            var line = (ushort*)bd.Scan0;
-            int delta = bd.Stride >> 1;
-
-            int i = 0;
-            while (i < Animations.PaletteCapacity)
+            finally
             {
-                animIdx.Palette[i] = 0;
-                i++;
-            }
-
-            int y = 0;
-
-            while (y < bmp.Height)
-            {
-                ushort* cur = line;
-                for (int x = 0; x < bmp.Width; x++)
+                foreach (Bitmap frame in frames)
                 {
-                    ushort c = cur[x];
-                    if (c == 0)
-                    {
-                        continue;
-                    }
-
-                    bool found = false;
-                    i = 0;
-
-                    while (i < animIdx.Palette.Length)
-                    {
-                        if (animIdx.Palette[i] == c)
-                        {
-                            found = true;
-                            break;
-                        }
-                        i++;
-                    }
-
-                    if (!found)
-                    {
-                        animIdx.Palette[count++] = c;
-                    }
-
-                    if (count >= Animations.PaletteCapacity)
-                    {
-                        break;
-                    }
+                    frame.Dispose();
                 }
-
-                for (i = 0; i < Animations.PaletteCapacity; i++)
-                {
-                    if (animIdx.Palette[i] < 0x8000)
-                    {
-                        animIdx.Palette[i] = 0x8000;
-                    }
-                }
-
-                if (count >= Animations.PaletteCapacity)
-                {
-                    break;
-                }
-
-                y++;
-                line += delta;
             }
         }
 
